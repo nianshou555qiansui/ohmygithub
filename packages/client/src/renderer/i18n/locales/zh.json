@@ -38,6 +38,28 @@
       "placeholder": "未接入"
     }
   },
+  "repository": {
+    "description": "{repository} 已作为仓库工作页打开。真实仓库数据会在这里继续接入。",
+    "eyebrow": "仓库",
+    "sections": {
+      "activity": {
+        "description": "后续可以把 checks、pull requests 和最近事件收束成仓库动态。",
+        "title": "动态"
+      },
+      "overview": {
+        "description": "这里会成为仓库概览，后续补上分支、议题和工作流入口。",
+        "title": "概览"
+      }
+    },
+    "summary": {
+      "branches": "分支",
+      "stars": "Stars",
+      "visibility": "可见性"
+    },
+    "values": {
+      "placeholder": "未接入"
+    }
+  },
   "workspace": {
     "title": "Workspace",
     "sidebar": {
@@ -52,6 +74,11 @@
         "empty": "没有组织",
         "error": "无法加载组织",
         "loading": "正在加载组织"
+      },
+      "repositories": {
+        "empty": "没有仓库",
+        "error": "无法加载仓库",
+        "loading": "正在加载仓库"
       },
       "search": "搜索工作区"
     },

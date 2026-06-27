@@ -2,7 +2,7 @@ import { AccountsApi } from './modules/accounts'
 import { AuthApi } from './modules/auth'
 import { InboxApi } from './modules/inbox'
 import { createOctokit, type GitHubOctokit } from './transport'
-import type { GitHubApiOptions, GitHubClient, GitHubOrganization, GitHubWorkspaceItem } from './types'
+import type { GitHubApiOptions, GitHubClient, GitHubOrganization, GitHubRepository, GitHubWorkspaceItem } from './types'
 
 export interface GitHubApi extends GitHubClient {
   readonly octokit: GitHubOctokit
@@ -23,10 +23,11 @@ export function createGitHubApi(options: GitHubApiOptions): GitHubApi {
     auth,
     inbox,
     listViewerOrganizations: () => accounts.listViewerOrganizations(),
+    listOrganizationRepositories: (owner) => accounts.listOrganizationRepositories(owner),
     listNotifications: () => inbox.listNotifications(),
     listPullRequests: () => inbox.listPullRequests(),
     listIssues: () => inbox.listIssues()
   }
 }
 
-export type { GitHubOrganization, GitHubWorkspaceItem }
+export type { GitHubOrganization, GitHubRepository, GitHubWorkspaceItem }

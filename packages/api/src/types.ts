@@ -21,6 +21,17 @@ export interface GitHubOrganization {
   description: string | null
 }
 
+export interface GitHubRepository {
+  id: number
+  name: string
+  nameWithOwner: string
+  owner: string
+  description: string | null
+  isPrivate: boolean
+  updatedAt: string
+  url: string
+}
+
 export interface GitHubDeviceAuthorization {
   deviceCode: string
   userCode: string
@@ -78,6 +89,7 @@ export interface GitHubClient {
   listPullRequests(): Promise<GitHubWorkspaceItem[]>
   listIssues(): Promise<GitHubWorkspaceItem[]>
   listViewerOrganizations(): Promise<GitHubOrganization[]>
+  listOrganizationRepositories(owner: string): Promise<GitHubRepository[]>
 }
 
 export interface GitHubApiOptions {

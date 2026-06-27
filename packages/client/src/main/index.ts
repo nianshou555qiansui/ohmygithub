@@ -7,8 +7,8 @@ import { initializeConfig, registerConfigIpc } from './config'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
-    width: 1320,
-    height: 860,
+    width: 1560,
+    height: 940,
     minWidth: 1040,
     minHeight: 680,
     title: 'Oh My GitHub',

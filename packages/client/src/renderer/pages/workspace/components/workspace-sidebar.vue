@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import type { WorkspaceSidebarTreeItem } from '../types'
+import { computed, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Ellipsis, Inbox, Search } from 'lucide-vue-next'
+import { Inbox, Search } from 'lucide-vue-next'
 import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
   Sidebar,
   SidebarContent,
   SidebarGroup,
@@ -17,6 +15,7 @@ import {
   SidebarMenuItem,
   SidebarMenuSkeleton,
 } from '@oh-my-github/ui'
+import WorkspaceSidebarTree from './workspace-sidebar-tree.vue'
 
 const props = defineProps<{
   activeUrl: string
@@ -31,21 +30,49 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const organizationsExpanded = ref(false)
+const expandedIds = reactive(new Set<string>())
+const visibleCounts = reactive(new Map<string, number>())
 
-const visibleOrganizations = computed(() => {
-  if (organizationsExpanded.value) return props.organizations
-  return props.organizations.slice(0, 4)
+const organizationItems = computed<WorkspaceSidebarTreeItem[]>(() => {
+  return props.organizations.map((organization) => {
+    const url = organizationUrl(organization.login)
+
+    return {
+      id: `org:${organization.login}`,
+      label: organization.login,
+      url,
+      avatarUrl: organization.avatarUrl,
+      avatarFallback: organizationFallback(organization.login),
+      isActive: props.activeUrl === url,
+      canExpand: true,
+      forceExpanded: props.activeUrl.startsWith(`/${organization.login}/`),
+      childrenLoader: {
+        type: 'organization-repositories',
+        owner: organization.login,
+      },
+    }
+  })
 })
 
-const showMoreOrganizations = computed(() => props.organizations.length > 4 && !organizationsExpanded.value)
-
-function organizationUrl(organization: GitHubOrganization): string {
-  return `/${organization.login}?type=org`
+function organizationUrl(login: string): string {
+  return `/${login}?type=org`
 }
 
-function organizationFallback(organization: GitHubOrganization): string {
-  return organization.login.slice(0, 1).toUpperCase()
+function organizationFallback(login: string): string {
+  return login.slice(0, 1).toUpperCase()
+}
+
+function toggleExpanded(id: string): void {
+  if (expandedIds.has(id)) {
+    expandedIds.delete(id)
+    return
+  }
+
+  expandedIds.add(id)
+}
+
+function setVisibleCount(listId: string, visibleCount: number): void {
+  visibleCounts.set(listId, visibleCount)
 }
 </script>
 
@@ -53,7 +80,7 @@ function organizationFallback(organization: GitHubOrganization): string {
   <Sidebar
     data-workspace-sidebar
     collapsible="offcanvas"
-    width="12rem"
+    width="24rem"
     class="border-r border-border"
   >
     <SidebarHeader
@@ -121,43 +148,17 @@ function organizationFallback(organization: GitHubOrganization): string {
             {{ t('workspace.sidebar.organizations.empty') }}
           </p>
 
-          <SidebarMenu v-else>
-            <SidebarMenuItem
-              v-for="organization in visibleOrganizations"
-              :key="organization.id"
-            >
-              <SidebarMenuButton
-                size="sm"
-                :is-active="activeUrl === organizationUrl(organization)"
-                :tooltip="organization.login"
-                type="button"
-                @click="emit('select', organizationUrl(organization))"
-              >
-                <Avatar class="size-4">
-                  <AvatarImage
-                    :alt="organization.login"
-                    :src="organization.avatarUrl"
-                  />
-                  <AvatarFallback class="text-[10px]">
-                    {{ organizationFallback(organization) }}
-                  </AvatarFallback>
-                </Avatar>
-                <span>{{ organization.login }}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem v-if="showMoreOrganizations">
-              <SidebarMenuButton
-                size="sm"
-                :tooltip="t('workspace.sidebar.more')"
-                type="button"
-                @click="organizationsExpanded = true"
-              >
-                <Ellipsis />
-                <span>{{ t('workspace.sidebar.more') }}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+          <WorkspaceSidebarTree
+            v-else
+            :active-url="activeUrl"
+            :expanded-ids="expandedIds"
+            :items="organizationItems"
+            list-id="organizations"
+            :visible-counts="visibleCounts"
+            @select="emit('select', $event)"
+            @show-more="setVisibleCount"
+            @toggle="toggleExpanded"
+          />
         </SidebarGroupContent>
       </SidebarGroup>
     </SidebarContent>

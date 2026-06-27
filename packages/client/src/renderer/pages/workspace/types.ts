@@ -34,6 +34,25 @@ export interface WorkspaceTab {
   draftId?: string
 }
 
+export interface WorkspaceSidebarTreeItemLoader {
+  type: 'organization-repositories'
+  owner: string
+}
+
+export interface WorkspaceSidebarTreeItem {
+  id: string
+  label: string
+  url?: string
+  icon?: Component
+  avatarUrl?: string
+  avatarFallback?: string
+  isActive?: boolean
+  canExpand?: boolean
+  forceExpanded?: boolean
+  children?: WorkspaceSidebarTreeItem[]
+  childrenLoader?: WorkspaceSidebarTreeItemLoader
+}
+
 export interface WorkspaceTabView {
   tab: WorkspaceTab
   icon: Component

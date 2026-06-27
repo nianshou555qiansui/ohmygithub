@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Badge } from '@oh-my-github/ui'
 import OrganizationPage from '../../organization/organization-page.vue'
+import RepositoryPage from '../../repository/repository-page.vue'
 import { getWorkspaceTabView } from '../tab-presentation'
 
 const props = defineProps<{
@@ -21,6 +22,11 @@ function translate(key: string, params?: WorkspaceMessageParams): string {
 <template>
   <OrganizationPage
     v-if="tab.type === 'org'"
+    :tab="tab"
+  />
+
+  <RepositoryPage
+    v-else-if="tab.type === 'repo'"
     :tab="tab"
   />
 

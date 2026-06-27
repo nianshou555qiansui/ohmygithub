@@ -43,7 +43,7 @@ onBeforeUnmount(() => {
 <template>
   <SidebarProvider
     v-model:open="isSidebarOpen"
-    width="12rem"
+    width="24rem"
     class="h-full min-h-0 bg-background"
   >
     <WorkspaceSidebar

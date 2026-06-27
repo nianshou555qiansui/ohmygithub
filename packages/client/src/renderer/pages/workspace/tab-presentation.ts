@@ -2,10 +2,10 @@ import type { WorkspaceTab, WorkspaceTabView } from './types'
 import {
   Bell,
   Building2,
+  Book,
   FileText,
   GitPullRequest,
   Inbox,
-  Package,
   UserRound,
 } from 'lucide-vue-next'
 
@@ -105,7 +105,7 @@ export function getWorkspaceTabView(tab: WorkspaceTab): WorkspaceTabView {
 
   if (tab.type === 'repo') {
     return createResourceView(tab, {
-      icon: Package,
+      icon: Book,
       eyebrowKey: 'workspace.panel.eyebrows.repo',
       headingKey: 'workspace.panel.headings.repo',
       descriptionKey: 'workspace.panel.descriptions.repo',

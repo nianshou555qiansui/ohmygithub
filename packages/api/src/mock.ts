@@ -1,4 +1,4 @@
-import type { GitHubClient, GitHubOrganization, GitHubWorkspaceItem } from './types'
+import type { GitHubClient, GitHubOrganization, GitHubRepository, GitHubWorkspaceItem } from './types'
 
 const items: GitHubWorkspaceItem[] = [
   {
@@ -83,9 +83,34 @@ const organizations: GitHubOrganization[] = [
   }
 ]
 
+const repositoriesByOrganization: Record<string, GitHubRepository[]> = {
+  'oh-my-github': createMockRepositories('oh-my-github', [
+    'client',
+    'api',
+    'ui',
+    'desktop-shell',
+    'workspace',
+    'notifications',
+    'reviews',
+    'actions',
+    'settings',
+    'design-system',
+    'oauth',
+    'release',
+  ]),
+  electron: createMockRepositories('electron', ['electron', 'forge', 'fiddle']),
+  vuejs: createMockRepositories('vuejs', ['core', 'router', 'pinia', 'vitepress']),
+  github: createMockRepositories('github', ['docs', 'hub', 'training-kit']),
+  octokit: createMockRepositories('octokit', ['octokit.js', 'rest.js', 'graphql.js']),
+}
+
 export class MockGitHubClient implements GitHubClient {
   async listViewerOrganizations(): Promise<GitHubOrganization[]> {
     return organizations
+  }
+
+  async listOrganizationRepositories(owner: string): Promise<GitHubRepository[]> {
+    return repositoriesByOrganization[owner] ?? []
   }
 
   async listNotifications(): Promise<GitHubWorkspaceItem[]> {
@@ -99,4 +124,17 @@ export class MockGitHubClient implements GitHubClient {
   async listIssues(): Promise<GitHubWorkspaceItem[]> {
     return items.filter((item) => item.kind === 'issue')
   }
+}
+
+function createMockRepositories(owner: string, names: string[]): GitHubRepository[] {
+  return names.map((name, index) => ({
+    id: Number(`${organizations.find((organization) => organization.login === owner)?.id ?? 9}${index + 1}`),
+    name,
+    nameWithOwner: `${owner}/${name}`,
+    owner,
+    description: `${name} workspace placeholder`,
+    isPrivate: index % 5 === 0,
+    updatedAt: new Date(Date.UTC(2026, 5, 27 - index)).toISOString(),
+    url: `https://github.com/${owner}/${name}`,
+  }))
 }

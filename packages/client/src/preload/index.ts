@@ -7,7 +7,9 @@ const api = {
     version: '0.1.0'
   },
   accounts: {
-    listOrganizations: () => ipcRenderer.invoke('accounts:list-organizations')
+    listOrganizations: () => ipcRenderer.invoke('accounts:list-organizations'),
+    listOrganizationRepositories: (owner: string) =>
+      ipcRenderer.invoke('accounts:list-organization-repositories', owner)
   },
   auth: {
     get: () => ipcRenderer.invoke('auth:get'),

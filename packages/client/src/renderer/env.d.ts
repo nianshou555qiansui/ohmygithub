@@ -28,6 +28,17 @@ type GitHubOrganization = {
   description: string | null
 }
 
+type GitHubRepository = {
+  id: number
+  name: string
+  nameWithOwner: string
+  owner: string
+  description: string | null
+  isPrivate: boolean
+  updatedAt: string
+  url: string
+}
+
 type AuthState = {
   isAuthenticated: boolean
   path: string
@@ -55,6 +66,7 @@ interface Window {
     }
     accounts: {
       listOrganizations: () => Promise<GitHubOrganization[]>
+      listOrganizationRepositories: (owner: string) => Promise<GitHubRepository[]>
     }
     auth: {
       get: () => Promise<AuthState>

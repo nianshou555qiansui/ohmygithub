@@ -38,6 +38,28 @@
       "placeholder": "Not connected"
     }
   },
+  "repository": {
+    "description": "{repository} is open as a repository workspace. Real repository data will be connected here later.",
+    "eyebrow": "Repository",
+    "sections": {
+      "activity": {
+        "description": "A future repository activity stream can collect checks, pull requests, and recent events.",
+        "title": "Activity"
+      },
+      "overview": {
+        "description": "This placeholder will become the repository overview with branches, issues, and workflow entry points.",
+        "title": "Overview"
+      }
+    },
+    "summary": {
+      "branches": "Branches",
+      "stars": "Stars",
+      "visibility": "Visibility"
+    },
+    "values": {
+      "placeholder": "Not connected"
+    }
+  },
   "workspace": {
     "title": "Workspace",
     "sidebar": {
@@ -52,6 +74,11 @@
         "empty": "No organizations",
         "error": "Could not load organizations",
         "loading": "Loading organizations"
+      },
+      "repositories": {
+        "empty": "No repositories",
+        "error": "Could not load repositories",
+        "loading": "Loading repositories"
       },
       "search": "Search workspace"
     },
