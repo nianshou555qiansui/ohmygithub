@@ -3,6 +3,7 @@ import type { WorkspaceMessageParams, WorkspaceTab } from '../types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Badge } from '@oh-my-github/ui'
+import OrganizationPage from '../../organization/organization-page.vue'
 import { getWorkspaceTabView } from '../tab-presentation'
 
 const props = defineProps<{
@@ -18,7 +19,15 @@ function translate(key: string, params?: WorkspaceMessageParams): string {
 </script>
 
 <template>
-  <section class="min-h-full bg-background">
+  <OrganizationPage
+    v-if="tab.type === 'org'"
+    :tab="tab"
+  />
+
+  <section
+    v-else
+    class="min-h-full bg-background"
+  >
     <div class="mx-auto grid w-full max-w-4xl gap-5 px-6 py-6">
       <div class="grid max-w-3xl gap-2">
         <Badge

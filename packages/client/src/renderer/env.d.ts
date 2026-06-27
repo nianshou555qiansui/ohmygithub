@@ -21,6 +21,13 @@ type AuthViewer = {
   avatarUrl: string
 }
 
+type GitHubOrganization = {
+  id: number
+  login: string
+  avatarUrl: string
+  description: string | null
+}
+
 type AuthState = {
   isAuthenticated: boolean
   path: string
@@ -45,6 +52,9 @@ interface Window {
     app: {
       name: string
       version: string
+    }
+    accounts: {
+      listOrganizations: () => Promise<GitHubOrganization[]>
     }
     auth: {
       get: () => Promise<AuthState>

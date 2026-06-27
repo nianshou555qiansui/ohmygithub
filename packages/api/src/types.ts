@@ -14,6 +14,13 @@ export interface GitHubAuthViewer {
   avatarUrl: string
 }
 
+export interface GitHubOrganization {
+  id: number
+  login: string
+  avatarUrl: string
+  description: string | null
+}
+
 export interface GitHubDeviceAuthorization {
   deviceCode: string
   userCode: string
@@ -70,6 +77,7 @@ export interface GitHubClient {
   listNotifications(): Promise<GitHubWorkspaceItem[]>
   listPullRequests(): Promise<GitHubWorkspaceItem[]>
   listIssues(): Promise<GitHubWorkspaceItem[]>
+  listViewerOrganizations(): Promise<GitHubOrganization[]>
 }
 
 export interface GitHubApiOptions {

@@ -16,26 +16,44 @@
     "usePersonalToken": "Use personal GitHub token",
     "waitingForAuthorization": "Waiting for authorization at"
   },
+  "organization": {
+    "description": "{owner} is ready for organization-specific navigation. Repository, member, and activity data will be connected here.",
+    "eyebrow": "Organization",
+    "sections": {
+      "activity": {
+        "description": "A future activity stream can collect reviews, notifications, and workflow signals for this organization.",
+        "title": "Activity"
+      },
+      "repositories": {
+        "description": "This area will become the organization repository surface, with filters and quick entry points.",
+        "title": "Repositories"
+      }
+    },
+    "summary": {
+      "activity": "Activity",
+      "members": "Members",
+      "repositories": "Repositories"
+    },
+    "values": {
+      "placeholder": "Not connected"
+    }
+  },
   "workspace": {
     "title": "Workspace",
     "sidebar": {
       "groups": {
-        "primary": "Workspace",
-        "repositories": "Repositories"
+        "organizations": "Organizations"
       },
       "items": {
-        "activity": "Activity",
-        "actions": "Actions",
-        "client": "Electron Client",
-        "inbox": "Inbox",
-        "issues": "Issues",
-        "pinned": "Pinned",
-        "pulls": "Pull Requests",
-        "reviews": "Review Queue",
-        "ui": "UI Package"
+        "inbox": "Inbox"
       },
-      "search": "Search workspace",
-      "settings": "Settings"
+      "more": "More",
+      "organizations": {
+        "empty": "No organizations",
+        "error": "Could not load organizations",
+        "loading": "Loading organizations"
+      },
+      "search": "Search workspace"
     },
     "tabs": {
       "closeTab": "Close {title}",

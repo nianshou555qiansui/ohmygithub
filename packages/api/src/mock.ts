@@ -1,4 +1,4 @@
-import type { GitHubClient, GitHubWorkspaceItem } from './types'
+import type { GitHubClient, GitHubOrganization, GitHubWorkspaceItem } from './types'
 
 const items: GitHubWorkspaceItem[] = [
   {
@@ -50,7 +50,44 @@ const items: GitHubWorkspaceItem[] = [
   }
 ]
 
+const organizations: GitHubOrganization[] = [
+  {
+    id: 1,
+    login: 'oh-my-github',
+    avatarUrl: 'https://avatars.githubusercontent.com/u/9919?s=80&v=4',
+    description: 'Desktop GitHub workspace'
+  },
+  {
+    id: 2,
+    login: 'electron',
+    avatarUrl: 'https://avatars.githubusercontent.com/u/13409222?s=80&v=4',
+    description: 'Build cross-platform desktop apps'
+  },
+  {
+    id: 3,
+    login: 'vuejs',
+    avatarUrl: 'https://avatars.githubusercontent.com/u/6128107?s=80&v=4',
+    description: 'The progressive JavaScript framework'
+  },
+  {
+    id: 4,
+    login: 'github',
+    avatarUrl: 'https://avatars.githubusercontent.com/u/9919?s=80&v=4',
+    description: 'GitHub'
+  },
+  {
+    id: 5,
+    login: 'octokit',
+    avatarUrl: 'https://avatars.githubusercontent.com/u/3430433?s=80&v=4',
+    description: 'GitHub API clients'
+  }
+]
+
 export class MockGitHubClient implements GitHubClient {
+  async listViewerOrganizations(): Promise<GitHubOrganization[]> {
+    return organizations
+  }
+
   async listNotifications(): Promise<GitHubWorkspaceItem[]> {
     return items
   }

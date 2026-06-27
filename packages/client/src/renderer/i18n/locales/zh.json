@@ -16,26 +16,44 @@
     "usePersonalToken": "使用个人 GitHub token",
     "waitingForAuthorization": "正在等待授权："
   },
+  "organization": {
+    "description": "{owner} 的组织页已经准备好承接专属导航。仓库、成员和动态数据会在这里继续接入。",
+    "eyebrow": "组织",
+    "sections": {
+      "activity": {
+        "description": "后续可以把这个组织的 review、通知和工作流信号收束成一个动态流。",
+        "title": "动态"
+      },
+      "repositories": {
+        "description": "这里会成为组织仓库入口，后续补上筛选和快速进入能力。",
+        "title": "仓库"
+      }
+    },
+    "summary": {
+      "activity": "动态",
+      "members": "成员",
+      "repositories": "仓库"
+    },
+    "values": {
+      "placeholder": "未接入"
+    }
+  },
   "workspace": {
     "title": "Workspace",
     "sidebar": {
       "groups": {
-        "primary": "工作区",
-        "repositories": "仓库"
+        "organizations": "Organizations"
       },
       "items": {
-        "activity": "活动",
-        "actions": "工作流",
-        "client": "Electron Client",
-        "inbox": "收件箱",
-        "issues": "议题",
-        "pinned": "已收藏",
-        "pulls": "拉取请求",
-        "reviews": "Review Queue",
-        "ui": "UI Package"
+        "inbox": "收件箱"
       },
-      "search": "搜索工作区",
-      "settings": "设置"
+      "more": "更多",
+      "organizations": {
+        "empty": "没有组织",
+        "error": "无法加载组织",
+        "loading": "正在加载组织"
+      },
+      "search": "搜索工作区"
     },
     "tabs": {
       "closeTab": "关闭 {title}",

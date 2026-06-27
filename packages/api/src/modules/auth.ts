@@ -29,7 +29,7 @@ interface AccessTokenResponse {
   error_description?: string
 }
 
-export const defaultGitHubOAuthScopes = ['repo', 'notifications', 'read:user'] as const
+export const defaultGitHubOAuthScopes = ['repo', 'notifications', 'read:user', 'read:org'] as const
 
 interface AuthApiOptions {
   octokit?: GitHubOctokit

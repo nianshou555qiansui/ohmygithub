@@ -52,6 +52,16 @@ export function initializeAuth(): AuthState {
   return getAuthState()
 }
 
+export function getAuthenticatedAccessToken(): string {
+  const auth = readStoredAuth()
+
+  if (!auth?.accessToken) {
+    throw new Error('GitHub authentication is required')
+  }
+
+  return auth.accessToken
+}
+
 export function registerAuthIpc(): void {
   ipcMain.handle('auth:get', () => getAuthState())
   ipcMain.handle('auth:start-device-flow', () => startDeviceFlow())

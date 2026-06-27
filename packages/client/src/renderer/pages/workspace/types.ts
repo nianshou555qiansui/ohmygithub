@@ -11,19 +11,6 @@ export type WorkspaceTabType =
   | 'org'
   | 'repo'
 
-export interface WorkspaceNavItem {
-  id: string
-  labelKey: string
-  icon: Component
-  url: string
-}
-
-export interface WorkspaceNavGroup {
-  id: string
-  labelKey: string
-  items: WorkspaceNavItem[]
-}
-
 export interface WorkspacePanelStat {
   id: string
   labelKey: string

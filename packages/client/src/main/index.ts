@@ -1,6 +1,7 @@
 import { join } from 'node:path'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { is } from '@electron-toolkit/utils'
+import { registerAccountsIpc } from './accounts'
 import { initializeAuth, registerAuthIpc } from './auth'
 import { initializeConfig, registerConfigIpc } from './config'
 
@@ -59,6 +60,7 @@ function registerWindowIpc(): void {
 
 void app.whenReady().then(() => {
   app.setAppUserModelId('dev.oh-my-github.client')
+  registerAccountsIpc()
   registerAuthIpc()
   registerConfigIpc()
   registerWindowIpc()

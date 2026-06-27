@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import type { WorkspaceNavGroup } from '../types'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Search, Settings2 } from 'lucide-vue-next'
+import { Ellipsis, Inbox, Search } from 'lucide-vue-next'
 import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -13,12 +15,15 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSkeleton,
 } from '@oh-my-github/ui'
 
-defineProps<{
-  groups: WorkspaceNavGroup[]
-  activeItemId: string
+const props = defineProps<{
+  activeUrl: string
   isFullscreen: boolean
+  organizations: GitHubOrganization[]
+  organizationsError: boolean
+  organizationsLoading: boolean
 }>()
 
 const emit = defineEmits<{
@@ -26,6 +31,22 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const organizationsExpanded = ref(false)
+
+const visibleOrganizations = computed(() => {
+  if (organizationsExpanded.value) return props.organizations
+  return props.organizations.slice(0, 4)
+})
+
+const showMoreOrganizations = computed(() => props.organizations.length > 4 && !organizationsExpanded.value)
+
+function organizationUrl(organization: GitHubOrganization): string {
+  return `/${organization.login}?type=org`
+}
+
+function organizationFallback(organization: GitHubOrganization): string {
+  return organization.login.slice(0, 1).toUpperCase()
+}
 </script>
 
 <template>
@@ -37,8 +58,8 @@ const { t } = useI18n()
   >
     <SidebarHeader
       :class="isFullscreen
-        ? 'gap-0 border-b border-border px-2 pb-1 pt-0'
-        : 'gap-2 border-b border-border px-2 pb-2 pt-0'"
+        ? 'gap-0 px-2 pb-1 pt-0'
+        : 'gap-2 px-2 pb-2 pt-0'"
     >
       <div
         aria-hidden="true"
@@ -56,54 +77,90 @@ const { t } = useI18n()
             <span>{{ t('workspace.sidebar.search') }}</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            size="sm"
+            :is-active="activeUrl === '/inbox'"
+            :tooltip="t('workspace.sidebar.items.inbox')"
+            type="button"
+            @click="emit('select', '/inbox')"
+          >
+            <Inbox />
+            <span>{{ t('workspace.sidebar.items.inbox') }}</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
       </SidebarMenu>
     </SidebarHeader>
 
     <SidebarContent>
-      <SidebarGroup
-        v-for="group in groups"
-        :key="group.id"
-        class="px-2 py-1"
-      >
+      <SidebarGroup class="px-2 py-1">
         <SidebarGroupLabel class="h-6 px-2 text-caption">
-          {{ t(group.labelKey) }}
+          {{ t('workspace.sidebar.groups.organizations') }}
         </SidebarGroupLabel>
         <SidebarGroupContent>
-          <SidebarMenu>
+          <SidebarMenu v-if="organizationsLoading">
             <SidebarMenuItem
-              v-for="item in group.items"
-              :key="item.id"
+              v-for="index in 3"
+              :key="index"
+            >
+              <SidebarMenuSkeleton show-icon />
+            </SidebarMenuItem>
+          </SidebarMenu>
+
+          <p
+            v-else-if="organizationsError"
+            class="px-2 py-1.5 text-caption text-muted-foreground"
+          >
+            {{ t('workspace.sidebar.organizations.error') }}
+          </p>
+
+          <p
+            v-else-if="organizations.length === 0"
+            class="px-2 py-1.5 text-caption text-muted-foreground"
+          >
+            {{ t('workspace.sidebar.organizations.empty') }}
+          </p>
+
+          <SidebarMenu v-else>
+            <SidebarMenuItem
+              v-for="organization in visibleOrganizations"
+              :key="organization.id"
             >
               <SidebarMenuButton
                 size="sm"
-                :is-active="activeItemId === item.id"
-                :tooltip="t(item.labelKey)"
+                :is-active="activeUrl === organizationUrl(organization)"
+                :tooltip="organization.login"
                 type="button"
-                @click="emit('select', item.url)"
+                @click="emit('select', organizationUrl(organization))"
               >
-                <component :is="item.icon" />
-                <span>{{ t(item.labelKey) }}</span>
+                <Avatar class="size-4">
+                  <AvatarImage
+                    :alt="organization.login"
+                    :src="organization.avatarUrl"
+                  />
+                  <AvatarFallback class="text-[10px]">
+                    {{ organizationFallback(organization) }}
+                  </AvatarFallback>
+                </Avatar>
+                <span>{{ organization.login }}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem v-if="showMoreOrganizations">
+              <SidebarMenuButton
+                size="sm"
+                :tooltip="t('workspace.sidebar.more')"
+                type="button"
+                @click="organizationsExpanded = true"
+              >
+                <Ellipsis />
+                <span>{{ t('workspace.sidebar.more') }}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
     </SidebarContent>
-
-    <SidebarFooter class="border-t border-border p-1.5">
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            size="sm"
-            :tooltip="t('workspace.sidebar.settings')"
-            type="button"
-          >
-            <Settings2 />
-            <span>{{ t('workspace.sidebar.settings') }}</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    </SidebarFooter>
   </Sidebar>
 </template>
 

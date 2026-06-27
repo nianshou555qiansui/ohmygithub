@@ -6,6 +6,9 @@ const api = {
     name: 'Oh My GitHub',
     version: '0.1.0'
   },
+  accounts: {
+    listOrganizations: () => ipcRenderer.invoke('accounts:list-organizations')
+  },
   auth: {
     get: () => ipcRenderer.invoke('auth:get'),
     startDeviceFlow: async (onStarted?: (details: unknown) => void) => {
