@@ -1,12 +1,7 @@
 import type { Component } from 'vue'
+import type { RepositoryTabId } from '../../workspace/types'
 
-export type RepositorySectionId =
-  | 'overview'
-  | 'files'
-  | 'pullRequests'
-  | 'issues'
-  | 'actions'
-  | 'settings'
+export type RepositorySectionId = RepositoryTabId
 
 export interface RepositorySection {
   id: RepositorySectionId

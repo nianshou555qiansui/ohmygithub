@@ -39,6 +39,10 @@ const api = {
     setWatching: (owner: string, repo: string, watching: boolean) =>
       ipcRenderer.invoke('repositories:set-watching', owner, repo, watching)
   },
+  search: {
+    resolveGoto: (input: string) => ipcRenderer.invoke('search:resolve-goto', input),
+    searchWorkspace: (options: unknown) => ipcRenderer.invoke('search:workspace', options)
+  },
   auth: {
     get: () => ipcRenderer.invoke('auth:get'),
     startDeviceFlow: async (onStarted?: (details: unknown) => void) => {

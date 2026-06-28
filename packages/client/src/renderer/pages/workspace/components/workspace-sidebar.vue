@@ -60,6 +60,7 @@ type WorkspaceSidebarSectionId = 'bookmarks' | 'pull-requests' | 'issues' | 'org
 const INBOX_ITEM_ID = 'workspace-sidebar:inbox'
 
 const emit = defineEmits<{
+  search: []
   select: [url: string]
   startResize: [event: PointerEvent]
 }>()
@@ -67,8 +68,6 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const { state } = useSidebar()
 const expandedIds = reactive(new Set<string>())
-const autoExpandedIds = reactive(new Set<string>())
-const manuallyExpandedIds = reactive(new Set<string>())
 const collapsedSectionIds = reactive(new Set<WorkspaceSidebarSectionId>())
 const visibleCounts = reactive(new Map<string, number>())
 const activeItemId = ref<string | null>(null)
@@ -112,7 +111,6 @@ const bookmarkItems = computed<WorkspaceSidebarTreeItem[]>(() => {
       label: folder.title,
       icon: Folder,
       canExpand: children.length > 0,
-      forceExpanded: children.some((child) => child.isActive),
       children,
     }
   })
@@ -164,16 +162,12 @@ const organizationItems = computed<WorkspaceSidebarTreeItem[]>(() => {
 })
 
 function toggleExpanded(id: string): void {
-  autoExpandedIds.delete(id)
-
-  if (manuallyExpandedIds.has(id)) {
-    manuallyExpandedIds.delete(id)
-    syncExpandedId(id)
+  if (expandedIds.has(id)) {
+    expandedIds.delete(id)
     return
   }
 
-  manuallyExpandedIds.add(id)
-  syncExpandedId(id)
+  expandedIds.add(id)
 }
 
 function toggleSection(id: WorkspaceSidebarSectionId): void {
@@ -199,35 +193,6 @@ function setVisibleCount(listId: string, visibleCount: number): void {
   visibleCounts.set(listId, visibleCount)
 }
 
-function syncExpandedId(id: string): void {
-  if (autoExpandedIds.has(id) || manuallyExpandedIds.has(id)) {
-    expandedIds.add(id)
-    return
-  }
-
-  expandedIds.delete(id)
-}
-
-function autoExpand(id: string): void {
-  autoExpandedIds.add(id)
-  syncExpandedId(id)
-}
-
-function applyAutoExpandedIds(ids: string[]): void {
-  const nextIds = new Set(ids)
-
-  for (const id of [...autoExpandedIds]) {
-    if (!nextIds.has(id)) {
-      autoExpandedIds.delete(id)
-      syncExpandedId(id)
-    }
-  }
-
-  for (const id of nextIds) {
-    autoExpand(id)
-  }
-}
-
 function selectSidebarItem(url: string, itemId: string): void {
   activeItemId.value = itemId
   activeItemUrl.value = url
@@ -237,31 +202,6 @@ function selectSidebarItem(url: string, itemId: string): void {
 
 function isInboxActive(): boolean {
   return activeItemId.value ? activeItemId.value === INBOX_ITEM_ID : props.activeUrl === '/inbox'
-}
-
-function collectForceExpandedIds(items: WorkspaceSidebarTreeItem[]): string[] {
-  const ids: string[] = []
-
-  for (const item of items) {
-    if (item.forceExpanded) {
-      ids.push(item.id)
-    }
-
-    if (item.children?.length) {
-      ids.push(...collectForceExpandedIds(item.children))
-    }
-  }
-
-  return ids
-}
-
-function expandActiveAncestors(): void {
-  applyAutoExpandedIds(collectForceExpandedIds([
-    ...bookmarkItems.value,
-    ...pullRequestItems.value,
-    ...issueItems.value,
-    ...organizationItems.value,
-  ]))
 }
 
 function syncActiveItem(): void {
@@ -335,7 +275,6 @@ watch(
   () => [props.activeUrl, bookmarkItems.value, pullRequestItems.value, issueItems.value, organizationItems.value],
   () => {
     syncActiveItem()
-    expandActiveAncestors()
   },
   { immediate: true },
 )
@@ -360,10 +299,11 @@ watch(
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton
-            class="before:hidden"
+            class="before:hidden focus-visible:ring-0 focus-visible:ring-offset-0"
             size="sm"
             :tooltip="t('workspace.sidebar.search')"
             type="button"
+            @click="emit('search')"
           >
             <Search />
             <span>{{ t('workspace.sidebar.search') }}</span>
@@ -432,7 +372,6 @@ watch(
             :items="bookmarkItems"
             list-id="bookmarks"
             :visible-counts="visibleCounts"
-            @auto-expand="autoExpand"
             @select="selectSidebarItem"
             @show-more="setVisibleCount"
             @toggle="toggleExpanded"
@@ -470,7 +409,6 @@ watch(
             :items="pullRequestItems"
             list-id="viewer-pull-requests"
             :visible-counts="visibleCounts"
-            @auto-expand="autoExpand"
             @select="selectSidebarItem"
             @show-more="setVisibleCount"
             @toggle="toggleExpanded"
@@ -508,7 +446,6 @@ watch(
             :items="issueItems"
             list-id="viewer-issues"
             :visible-counts="visibleCounts"
-            @auto-expand="autoExpand"
             @select="selectSidebarItem"
             @show-more="setVisibleCount"
             @toggle="toggleExpanded"
@@ -569,7 +506,6 @@ watch(
             :items="organizationItems"
             list-id="organizations"
             :visible-counts="visibleCounts"
-            @auto-expand="autoExpand"
             @select="selectSidebarItem"
             @show-more="setVisibleCount"
             @toggle="toggleExpanded"

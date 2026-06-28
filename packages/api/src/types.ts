@@ -32,6 +32,51 @@ export interface GitHubRepository {
   url: string
 }
 
+export type GitHubWorkspaceSearchMode = 'users' | 'orgs' | 'repos' | 'all'
+
+export type GitHubWorkspaceSearchItemKind = 'user' | 'org' | 'repo'
+
+export interface GitHubWorkspaceSearchItem {
+  id: number
+  kind: GitHubWorkspaceSearchItemKind
+  title: string
+  description: string | null
+  url: string
+  workspaceUrl: string
+  avatarUrl?: string
+  owner?: string
+  repo?: string
+  nameWithOwner?: string
+  isPrivate?: boolean
+  updatedAt?: string | null
+}
+
+export interface GitHubWorkspaceSearchResult {
+  mode: GitHubWorkspaceSearchMode
+  query: string
+  items: GitHubWorkspaceSearchItem[]
+  totalCount: number
+  page: number
+  perPage: number
+  hasNextPage: boolean
+  incompleteResults: boolean
+}
+
+export type GitHubWorkspaceGotoResult =
+  | {
+      status: 'found'
+      input: string
+      type: 'account' | 'org' | 'repo'
+      title: string
+      url: string
+    }
+  | {
+      status: 'not_found'
+      input: string
+      reason: 'invalid' | 'not_found'
+      url: string
+    }
+
 export interface GitHubRepositoryViewerState {
   isStarred: boolean
   isWatching: boolean
@@ -317,6 +362,8 @@ export interface GitHubClient {
   listRepositoryIssues(options: ListRepositoryWorkspaceItemsOptions): Promise<GitHubIssue[]>
   listViewerOrganizations(): Promise<GitHubOrganization[]>
   listOrganizationRepositories(owner: string): Promise<GitHubRepository[]>
+  resolveWorkspaceGoto(input: string): Promise<GitHubWorkspaceGotoResult>
+  searchWorkspace(options: SearchWorkspaceOptions): Promise<GitHubWorkspaceSearchResult>
   getRepositoryViewerState(options: RepositoryOptions): Promise<GitHubRepositoryViewerState>
   getRepositoryOverview(options: RepositoryOptions): Promise<GitHubRepositoryOverview>
   listRepositoryFiles(options: RepositoryFilesOptions): Promise<GitHubRepositoryFileTree>
@@ -364,6 +411,13 @@ export interface SearchRepositoryPullRequestsOptions extends RepositoryOptions {
   perPage?: number
   search?: string
   state?: GitHubPullRequestSearchState
+}
+
+export interface SearchWorkspaceOptions {
+  mode: GitHubWorkspaceSearchMode
+  query: string
+  page?: number
+  perPage?: number
 }
 
 export interface RepositoryOptions {

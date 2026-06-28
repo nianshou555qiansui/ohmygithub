@@ -22,7 +22,6 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  autoExpand: [id: string]
   select: [url: string, itemId: string]
   showMore: [listId: string, visibleCount: number]
   toggle: [id: string]
@@ -50,7 +49,6 @@ function showMoreItems(): void {
       :item="item"
       :level="0"
       :visible-counts="visibleCounts"
-      @auto-expand="emit('autoExpand', $event)"
       @select="(url: string, itemId: string) => emit('select', url, itemId)"
       @show-more="(listId: string, visibleCount: number) => emit('showMore', listId, visibleCount)"
       @toggle="emit('toggle', $event)"

@@ -43,15 +43,21 @@ const props = defineProps<{
   bookmarkFolders: WorkspaceBookmarkFolder[]
   bookmarks: WorkspaceBookmark[]
   bookmarkedUrls: Set<string>
+  canGoBack: boolean
+  canGoForward: boolean
   isFullscreen: boolean
   tabs: WorkspaceTab[]
 }>()
 
 const emit = defineEmits<{
+  back: []
   bookmark: [input: { folderId: string | null; tab: WorkspaceTab; title: string }]
   close: [url: string]
   create: []
+  forward: []
+  replaceActiveUrl: [url: string]
   removeBookmark: [url: string]
+  search: []
   select: [url: string]
 }>()
 
@@ -310,20 +316,22 @@ watch(
       <Button
         :aria-label="t('workspace.toolbar.back')"
         class="size-7"
-        disabled
+        :disabled="!props.canGoBack"
         size="icon-sm"
         type="button"
         variant="ghost"
+        @click="emit('back')"
       >
         <ArrowLeft class="size-3.5" />
       </Button>
       <Button
         :aria-label="t('workspace.toolbar.forward')"
         class="size-7"
-        disabled
+        :disabled="!props.canGoForward"
         size="icon-sm"
         type="button"
         variant="ghost"
+        @click="emit('forward')"
       >
         <ArrowRight class="size-3.5" />
       </Button>
@@ -487,7 +495,11 @@ watch(
           class="h-full min-h-0 overflow-auto"
           :value="tab.url"
         >
-          <WorkspacePanel :tab="tab" />
+          <WorkspacePanel
+            :tab="tab"
+            @replace-active-url="emit('replaceActiveUrl', $event)"
+            @search="emit('search')"
+          />
         </TabsContent>
       </div>
 

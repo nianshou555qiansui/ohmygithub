@@ -1,10 +1,11 @@
 import type { RouteLocationNormalizedLoaded } from 'vue-router'
-import type { WorkspaceTab, WorkspaceTabType } from './types'
+import type { RepositoryTabId, WorkspaceTab, WorkspaceTabType } from './types'
 
 export const DEFAULT_WORKSPACE_URL = '/inbox'
 
 const INTERNAL_TYPES = new Set<WorkspaceTabType>(['inbox', 'reviews', 'activity'])
-const INTERNAL_PATHS = new Set(['draft', 'pull-requests', 'issues'])
+const INTERNAL_PATHS = new Set(['draft', 'pull-requests', 'issues', 'search', 'not-found'])
+const DEFAULT_REPOSITORY_SECTION: RepositoryTabId = 'overview'
 const PULL_REQUEST_CATEGORIES = new Set<GitHubPullRequestCategory>([
   'created-by-me',
   'needs-review',
@@ -28,6 +29,8 @@ const VALID_TYPES = new Set<WorkspaceTabType>([
   'issue-list',
   'pull-request',
   'issue',
+  'search-result',
+  'not-found',
 ])
 
 export function isWorkspaceTabType(value: string): value is WorkspaceTabType {
@@ -37,6 +40,19 @@ export function isWorkspaceTabType(value: string): value is WorkspaceTabType {
 export function routeToWorkspaceUrl(route: RouteLocationNormalizedLoaded): string {
   const path = normalizeWorkspacePath(route.path)
   if (path === '/') return path
+
+  if (path === '/not-found') {
+    return createNotFoundUrl(typeof route.query.q === 'string' ? route.query.q : '')
+  }
+
+  if (path.startsWith('/search/')) {
+    const [, , rawMode] = path.split('/')
+    return createSearchUrl(sanitizeSearchMode(rawMode), typeof route.query.q === 'string' ? route.query.q : '')
+  }
+
+  if (isRepositoryWorkspacePath(path)) {
+    return createRepositoryUrlFromPath(path, typeof route.query.tab === 'string' ? route.query.tab : '')
+  }
 
   const type = typeof route.query.type === 'string' ? route.query.type : ''
   if (!type || isReservedInternalPath(path)) return path
@@ -59,11 +75,33 @@ export function normalizeWorkspaceUrl(url: string): string {
   const search = new URLSearchParams(rawSearch)
   const type = search.get('type')
 
+  if (path === '/not-found') {
+    return createNotFoundUrl(search.get('q') ?? '')
+  }
+
+  if (path.startsWith('/search/')) {
+    const [, , rawMode] = path.split('/')
+    return createSearchUrl(sanitizeSearchMode(rawMode), search.get('q') ?? '')
+  }
+
+  if (isRepositoryWorkspacePath(path)) {
+    return createRepositoryUrlFromPath(path, search.get('tab') ?? '')
+  }
+
   if (type !== 'org' || isReservedInternalPath(path)) {
     return path
   }
 
   return `${path}?type=org`
+}
+
+export function createRepositoryWorkspaceUrl(
+  owner: string,
+  repo: string,
+  section: RepositoryTabId = DEFAULT_REPOSITORY_SECTION,
+): string {
+  const path = `/${sanitizeSegment(owner)}/${sanitizeSegment(repo)}`
+  return createRepositoryUrlFromPath(path, repositorySectionToQuery(section))
 }
 
 export function isReservedInternalPath(path: string): boolean {
@@ -84,6 +122,28 @@ function parseWorkspaceUrl(url: string): Omit<WorkspaceTab, 'title'> {
   }
 
   const firstSegment = segments[0]
+
+  if (firstSegment === 'not-found') {
+    const input = sanitizeSearchQuery(query.get('q') ?? '')
+
+    return {
+      url: createNotFoundUrl(input),
+      type: 'not-found',
+      notFoundInput: input,
+    }
+  }
+
+  if (firstSegment === 'search') {
+    const mode = sanitizeSearchMode(segments[1])
+    const searchQuery = sanitizeSearchQuery(query.get('q') ?? '')
+
+    return {
+      url: createSearchUrl(mode, searchQuery),
+      type: 'search-result',
+      searchMode: mode,
+      searchQuery,
+    }
+  }
 
   if (firstSegment === 'draft') {
     const draftId = sanitizeSegment(segments[1]) || '1'
@@ -147,11 +207,14 @@ function parseWorkspaceUrl(url: string): Omit<WorkspaceTab, 'title'> {
   }
 
   if (owner && repo) {
+    const repositorySection = sanitizeRepositorySection(query.get('tab') ?? '')
+
     return {
-      url: `/${owner}/${repo}`,
+      url: createRepositoryWorkspaceUrl(owner, repo, repositorySection),
       type: 'repo',
       owner,
       repo,
+      repositorySection,
     }
   }
 
@@ -173,6 +236,8 @@ function titleForWorkspaceTab(tab: Omit<WorkspaceTab, 'title'>): string {
   if (tab.type === 'issue-list') return titleForIssueCategory(tab.issueCategory)
   if (tab.type === 'pull-request') return `${tab.owner}/${tab.repo}#${tab.number ?? ''}`
   if (tab.type === 'issue') return `${tab.owner}/${tab.repo}#${tab.number ?? ''}`
+  if (tab.type === 'search-result') return tab.searchQuery ? `Search: ${tab.searchQuery}` : 'Search'
+  if (tab.type === 'not-found') return tab.notFoundInput ? `Not Found: ${tab.notFoundInput}` : 'Not Found'
   if (tab.type === 'repo') return `${tab.owner}/${tab.repo}`
   if (tab.type === 'org') return tab.owner ?? 'Organization'
   return tab.owner ?? 'Account'
@@ -197,8 +262,74 @@ function normalizeWorkspacePath(path: string): string {
   return trimmed || '/'
 }
 
+function createRepositoryUrlFromPath(path: string, rawSection: string): string {
+  const repositorySection = sanitizeRepositorySection(rawSection)
+
+  if (repositorySection === DEFAULT_REPOSITORY_SECTION) {
+    return path
+  }
+
+  const params = new URLSearchParams()
+  params.set('tab', repositorySectionToQuery(repositorySection))
+  return `${path}?${params.toString()}`
+}
+
+function isRepositoryWorkspacePath(path: string): boolean {
+  const segments = normalizeWorkspacePath(path).split('/').filter(Boolean)
+  return segments.length === 2 && !isReservedInternalPath(path)
+}
+
+function createSearchUrl(mode: GitHubWorkspaceSearchMode, query: string): string {
+  const searchQuery = sanitizeSearchQuery(query)
+  const params = new URLSearchParams()
+
+  if (searchQuery) {
+    params.set('q', searchQuery)
+  }
+
+  const suffix = params.toString()
+  return suffix ? `/search/${mode}?${suffix}` : `/search/${mode}`
+}
+
+function createNotFoundUrl(input: string): string {
+  const notFoundInput = sanitizeSearchQuery(input)
+  const params = new URLSearchParams()
+
+  if (notFoundInput) {
+    params.set('q', notFoundInput)
+  }
+
+  const suffix = params.toString()
+  return suffix ? `/not-found?${suffix}` : '/not-found'
+}
+
 function sanitizeSegment(value: string | undefined): string {
   return String(value ?? '').trim()
+}
+
+function sanitizeSearchQuery(value: string | undefined): string {
+  return String(value ?? '').trim()
+}
+
+function sanitizeSearchMode(value: string | undefined): GitHubWorkspaceSearchMode {
+  if (value === 'users' || value === 'orgs' || value === 'repos' || value === 'all') {
+    return value
+  }
+
+  return 'all'
+}
+
+function sanitizeRepositorySection(value: string | undefined): RepositoryTabId {
+  if (value === 'files') return 'files'
+  if (value === 'pull-requests' || value === 'pullRequests') return 'pullRequests'
+  if (value === 'issues') return 'issues'
+  if (value === 'actions') return 'actions'
+  if (value === 'settings') return 'settings'
+  return DEFAULT_REPOSITORY_SECTION
+}
+
+function repositorySectionToQuery(section: RepositoryTabId): string {
+  return section === 'pullRequests' ? 'pull-requests' : section
 }
 
 function sanitizeNumber(value: string | undefined): number | null {

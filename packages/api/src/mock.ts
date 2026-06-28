@@ -10,6 +10,9 @@ import type {
   GitHubRepositoryFileTree,
   GitHubRepositoryOverview,
   GitHubRepositoryViewerState,
+  GitHubWorkspaceGotoResult,
+  GitHubWorkspaceSearchItem,
+  GitHubWorkspaceSearchResult,
   GitHubWorkspaceItem,
   ListIssueCategoryOptions,
   ListPullRequestCategoryOptions,
@@ -18,6 +21,7 @@ import type {
   RepositoryFilesOptions,
   RepositoryOptions,
   SearchRepositoryPullRequestsOptions,
+  SearchWorkspaceOptions,
   SetRepositoryStarredOptions,
   SetRepositoryWatchingOptions
 } from './types'
@@ -105,6 +109,27 @@ const organizations: GitHubOrganization[] = [
   }
 ]
 
+const users = [
+  {
+    id: 100,
+    login: 'acbox',
+    avatarUrl: 'https://avatars.githubusercontent.com/u/583231?s=80&v=4',
+    description: 'Oh My GitHub maintainer',
+  },
+  {
+    id: 101,
+    login: 'octocat',
+    avatarUrl: 'https://avatars.githubusercontent.com/u/583231?s=80&v=4',
+    description: 'GitHub mascot account',
+  },
+  {
+    id: 102,
+    login: 'maya',
+    avatarUrl: 'https://avatars.githubusercontent.com/u/1?s=80&v=4',
+    description: 'Reviewer account',
+  },
+]
+
 const repositoriesByOrganization: Record<string, GitHubRepository[]> = {
   'oh-my-github': createMockRepositories('oh-my-github', [
     'client',
@@ -147,6 +172,124 @@ export class MockGitHubClient implements GitHubClient {
 
   async listOrganizationRepositories(owner: string): Promise<GitHubRepository[]> {
     return repositoriesByOrganization[owner] ?? []
+  }
+
+  async resolveWorkspaceGoto(input: string): Promise<GitHubWorkspaceGotoResult> {
+    const normalizedInput = input.trim()
+    const parsed = parseMockGotoInput(normalizedInput)
+
+    if (!parsed) {
+      return createMockNotFoundResult(normalizedInput, 'invalid')
+    }
+
+    if (parsed.repo) {
+      const repository = (repositoriesByOrganization[parsed.owner] ?? [])
+        .find((item) => item.name.toLowerCase() === parsed.repo?.toLowerCase())
+
+      if (!repository) {
+        return createMockNotFoundResult(normalizedInput, 'not_found')
+      }
+
+      return {
+        status: 'found',
+        input: normalizedInput,
+        type: 'repo',
+        title: repository.nameWithOwner,
+        url: `/${encodeURIComponent(repository.owner)}/${encodeURIComponent(repository.name)}`,
+      }
+    }
+
+    const organization = organizations.find((item) => item.login.toLowerCase() === parsed.owner.toLowerCase())
+    if (organization) {
+      return {
+        status: 'found',
+        input: normalizedInput,
+        type: 'org',
+        title: organization.login,
+        url: `/${encodeURIComponent(organization.login)}?type=org`,
+      }
+    }
+
+    const user = users.find((item) => item.login.toLowerCase() === parsed.owner.toLowerCase())
+    if (user) {
+      return {
+        status: 'found',
+        input: normalizedInput,
+        type: 'account',
+        title: user.login,
+        url: `/${encodeURIComponent(user.login)}`,
+      }
+    }
+
+    return createMockNotFoundResult(normalizedInput, 'not_found')
+  }
+
+  async searchWorkspace(options: SearchWorkspaceOptions): Promise<GitHubWorkspaceSearchResult> {
+    const mode = options.mode
+    const query = options.query.trim()
+    const page = Math.max(1, Math.floor(options.page ?? 1))
+    const perPage = Math.max(1, Math.min(100, Math.floor(options.perPage ?? 20)))
+
+    if (!query) {
+      return createMockSearchResult(mode, query, [], page, perPage)
+    }
+
+    const userItems = users
+      .filter((user) => matchesSearch(user.login, user.description, query))
+      .map<GitHubWorkspaceSearchItem>((user) => ({
+        id: user.id,
+        kind: 'user',
+        title: user.login,
+        description: user.description,
+        url: `https://github.com/${user.login}`,
+        workspaceUrl: `/${encodeURIComponent(user.login)}`,
+        avatarUrl: user.avatarUrl,
+      }))
+    const orgItems = organizations
+      .filter((organization) => matchesSearch(organization.login, organization.description, query))
+      .map<GitHubWorkspaceSearchItem>((organization) => ({
+        id: organization.id,
+        kind: 'org',
+        title: organization.login,
+        description: organization.description,
+        url: `https://github.com/${organization.login}`,
+        workspaceUrl: `/${encodeURIComponent(organization.login)}?type=org`,
+        avatarUrl: organization.avatarUrl,
+      }))
+    const repoItems = Object.values(repositoriesByOrganization)
+      .flat()
+      .filter((repository) => matchesSearch(repository.nameWithOwner, repository.description, query))
+      .map<GitHubWorkspaceSearchItem>((repository) => ({
+        id: repository.id,
+        kind: 'repo',
+        title: repository.nameWithOwner,
+        description: repository.description,
+        url: repository.url,
+        workspaceUrl: `/${encodeURIComponent(repository.owner)}/${encodeURIComponent(repository.name)}`,
+        owner: repository.owner,
+        repo: repository.name,
+        nameWithOwner: repository.nameWithOwner,
+        isPrivate: repository.isPrivate,
+        updatedAt: repository.updatedAt,
+      }))
+
+    if (mode === 'users') {
+      return createMockSearchResult(mode, query, userItems, page, perPage)
+    }
+
+    if (mode === 'orgs') {
+      return createMockSearchResult(mode, query, orgItems, page, perPage)
+    }
+
+    if (mode === 'repos') {
+      return createMockSearchResult(mode, query, repoItems, page, perPage)
+    }
+
+    return createMockSearchResult('all', query, [
+      ...userItems.slice(0, 8),
+      ...orgItems.slice(0, 8),
+      ...repoItems.slice(0, 8),
+    ], page, perPage)
   }
 
   async listViewerPullRequests(): Promise<GitHubPullRequest[]> {
@@ -277,6 +420,77 @@ function readRepositoryViewerState(options: RepositoryOptions): GitHubRepository
     isWatching: false,
     starCount: mockRepositoryStarCount(options),
   }
+}
+
+function parseMockGotoInput(input: string): { owner: string, repo?: string } | null {
+  const normalized = input.trim()
+  if (!normalized) return null
+
+  const urlInput = normalized.match(/^https?:\/\//i) ? normalized : `https://${normalized}`
+
+  try {
+    const url = new URL(urlInput)
+    if (url.hostname.toLowerCase() === 'github.com') {
+      const segments = url.pathname.split('/').filter(Boolean).map(decodeURIComponent)
+      return mockSegmentsToGotoInput(segments)
+    }
+  } catch {
+    // Fall back to plain owner/repo parsing.
+  }
+
+  return mockSegmentsToGotoInput(normalized.split('/').filter(Boolean))
+}
+
+function mockSegmentsToGotoInput(segments: string[]): { owner: string, repo?: string } | null {
+  const owner = segments[0]?.trim()
+  const repo = segments[1]?.trim()
+
+  if (!owner) return null
+
+  return repo ? { owner, repo } : { owner }
+}
+
+function createMockNotFoundResult(
+  input: string,
+  reason: 'invalid' | 'not_found',
+): GitHubWorkspaceGotoResult {
+  const query = encodeURIComponent(input)
+
+  return {
+    status: 'not_found',
+    input,
+    reason,
+    url: query ? `/not-found?q=${query}` : '/not-found',
+  }
+}
+
+function createMockSearchResult(
+  mode: SearchWorkspaceOptions['mode'],
+  query: string,
+  items: GitHubWorkspaceSearchItem[],
+  page: number,
+  perPage: number,
+): GitHubWorkspaceSearchResult {
+  const offset = (page - 1) * perPage
+  const pageItems = mode === 'all' ? items : items.slice(offset, offset + perPage)
+
+  return {
+    mode,
+    query,
+    items: pageItems,
+    totalCount: items.length,
+    page,
+    perPage,
+    hasNextPage: offset + perPage < items.length,
+    incompleteResults: false,
+  }
+}
+
+function matchesSearch(title: string, description: string | null, query: string): boolean {
+  const normalizedQuery = query.toLowerCase()
+
+  return title.toLowerCase().includes(normalizedQuery)
+    || Boolean(description?.toLowerCase().includes(normalizedQuery))
 }
 
 function repositoryKey(options: RepositoryOptions): string {

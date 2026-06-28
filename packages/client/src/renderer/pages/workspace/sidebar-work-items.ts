@@ -50,7 +50,6 @@ export function pullRequestCategoryToTreeItem(
     icon: pullRequestCategoryIcon(category),
     isActive: isActiveItem(id, url, activeItemId, activeUrl),
     canExpand: true,
-    forceExpanded: shouldForceExpand(id, activeUrl === url, activeItemId),
     childrenLoader: {
       type: 'pull-request-category',
       pullRequestCategory: category,
@@ -75,7 +74,6 @@ export function issueCategoryToTreeItem(
     icon: issueCategoryIcon(category),
     isActive: isActiveItem(id, url, activeItemId, activeUrl),
     canExpand: true,
-    forceExpanded: shouldForceExpand(id, activeUrl === url, activeItemId),
     childrenLoader: {
       type: 'issue-category',
       issueCategory: category,
@@ -184,10 +182,6 @@ function isActiveItem(
   activeUrl: string,
 ): boolean {
   return activeItemId ? activeItemId === itemId : activeUrl === url
-}
-
-function shouldForceExpand(itemId: string, fallback: boolean, activeItemId: string | null): boolean {
-  return activeItemId ? activeItemId.startsWith(`${itemId}:`) : fallback
 }
 
 function issueIcon(state: GitHubIssueState): Component {

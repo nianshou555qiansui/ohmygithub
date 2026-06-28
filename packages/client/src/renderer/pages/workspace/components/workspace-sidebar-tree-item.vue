@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { WorkspaceSidebarTreeItem } from '../types'
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   Check,
@@ -45,7 +45,6 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  autoExpand: [id: string]
   select: [url: string, itemId: string]
   showMore: [listId: string, visibleCount: number]
   toggle: [id: string]
@@ -212,15 +211,6 @@ function showMoreItems(): void {
   )
 }
 
-watch(
-  () => [props.item.id, props.item.forceExpanded] as const,
-  ([id, forceExpanded]) => {
-    if (forceExpanded && !props.expandedIds.has(id)) {
-      emit('autoExpand', id)
-    }
-  },
-  { immediate: true },
-)
 </script>
 
 <template>
@@ -328,7 +318,6 @@ watch(
         :item="child"
         :level="level + 1"
         :visible-counts="visibleCounts"
-        @auto-expand="emit('autoExpand', $event)"
         @select="(url, itemId) => emit('select', url, itemId)"
         @show-more="(listId, visibleCount) => emit('showMore', listId, visibleCount)"
         @toggle="emit('toggle', $event)"
@@ -440,7 +429,6 @@ watch(
         :item="child"
         :level="level + 1"
         :visible-counts="visibleCounts"
-        @auto-expand="emit('autoExpand', $event)"
         @select="(url, itemId) => emit('select', url, itemId)"
         @show-more="(listId, visibleCount) => emit('showMore', listId, visibleCount)"
         @toggle="emit('toggle', $event)"

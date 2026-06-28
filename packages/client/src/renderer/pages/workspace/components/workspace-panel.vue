@@ -9,10 +9,17 @@ import OrganizationPage from '../../organization/organization-page.vue'
 import PullRequestListPage from '../../pull-request-list/pull-request-list-page.vue'
 import PullRequestPage from '../../pull-request/pull-request-page.vue'
 import RepositoryPage from '../../repository/repository-page.vue'
+import SearchResultPage from '../../search-result/search-result-page.vue'
+import NotFoundPage from '../../not-found/not-found-page.vue'
 import { getWorkspaceTabView } from '../tab-presentation'
 
 const props = defineProps<{
   tab: WorkspaceTab
+}>()
+
+const emit = defineEmits<{
+  replaceActiveUrl: [url: string]
+  search: []
 }>()
 
 const { t } = useI18n()
@@ -32,6 +39,7 @@ function translate(key: string, params?: WorkspaceMessageParams): string {
   <RepositoryPage
     v-else-if="tab.type === 'repo'"
     :tab="tab"
+    @replace-active-url="emit('replaceActiveUrl', $event)"
   />
 
   <PullRequestPage
@@ -52,6 +60,17 @@ function translate(key: string, params?: WorkspaceMessageParams): string {
   <IssueListPage
     v-else-if="tab.type === 'issue-list'"
     :tab="tab"
+  />
+
+  <SearchResultPage
+    v-else-if="tab.type === 'search-result'"
+    :tab="tab"
+  />
+
+  <NotFoundPage
+    v-else-if="tab.type === 'not-found'"
+    :tab="tab"
+    @search="emit('search')"
   />
 
   <section

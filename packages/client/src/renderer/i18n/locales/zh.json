@@ -43,6 +43,17 @@
     "usePersonalToken": "使用个人 GitHub token",
     "waitingForAuthorization": "正在等待授权："
   },
+  "settings": {
+    "description": "应用设置",
+    "navigation": "设置导航",
+    "sections": {
+      "interface": "Interface"
+    },
+    "tabs": {
+      "appearance": "Appearance"
+    },
+    "title": "设置"
+  },
   "organization": {
     "description": "{owner} 的组织页已经准备好承接专属导航。仓库、成员和动态数据会在这里继续接入。",
     "eyebrow": "组织",
@@ -427,6 +438,19 @@
       "resize": "调整侧边栏宽度",
       "search": "搜索工作区"
     },
+    "search": {
+      "actions": {
+        "all": "搜索 \"{query}\"",
+        "goto": "Goto \"{query}\"",
+        "orgs": "搜索组织 \"{query}\"",
+        "repos": "搜索仓库 \"{query}\"",
+        "users": "搜索用户 \"{query}\""
+      },
+      "description": "搜索 GitHub 账号、组织和仓库。",
+      "placeholder": "搜索 GitHub 或粘贴 URL",
+      "resolveError": "无法解析这个目标。可以改用搜索。",
+      "title": "搜索工作区"
+    },
     "tabs": {
       "closeTab": "关闭 {title}",
       "items": {
@@ -519,8 +543,10 @@
         "pullRequestList": "这个分类下的 Pull Request 会从左侧树里展开，完整列表视图后续再接入。",
         "issue": "{owner}/{repo} #{number} 的 Issue 数据会在这里继续接入。",
         "issueList": "这个分类下的 Issue 会从左侧树里展开，完整列表视图后续再接入。",
+        "notFound": "没有匹配这个输入的 GitHub 账号、组织或仓库。",
         "repo": "{owner}/{repo} 已作为仓库 tab 打开。本次只保留 URL、类型和占位面板。",
-        "reviews": "把等待你处理的拉取请求和合并前检查放在一个可切换 tab 中。"
+        "reviews": "把等待你处理的拉取请求和合并前检查放在一个可切换 tab 中。",
+        "searchResult": "结果从 GitHub Search API 加载。"
       },
       "eyebrows": {
         "account": "Account",
@@ -528,11 +554,13 @@
         "draft": "Draft",
         "issue": "Issue",
         "issueList": "Issue 列表",
+        "notFound": "Not Found",
         "org": "Organization",
         "pullRequest": "Pull Request",
         "pullRequestList": "Pull Request 列表",
         "repo": "Repository",
         "review": "Review",
+        "searchResult": "Search",
         "triage": "Triage"
       },
       "headings": {
@@ -542,11 +570,13 @@
         "inbox": "收件箱",
         "issue": "{owner}/{repo} #{number}",
         "issueList": "{title}",
+        "notFound": "{title}",
         "org": "{owner}",
         "pullRequest": "{owner}/{repo} #{number}",
         "pullRequestList": "{title}",
         "repo": "{owner}/{repo}",
-        "reviews": "Review Queue"
+        "reviews": "Review Queue",
+        "searchResult": "{title}"
       },
       "stats": {
         "account": "账号",
@@ -558,6 +588,7 @@
         "number": "编号",
         "organization": "组织",
         "owner": "Owner",
+        "query": "查询",
         "repos": "仓库",
         "repository": "仓库",
         "reviews": "Review",
@@ -580,11 +611,16 @@
         "mentionedMe": "提及我的",
         "needsReview": "需要 Review",
         "mentions": "0",
+        "notFound": "未找到",
         "org": "组织",
         "placeholder": "未接入",
         "repos": "3",
         "reviews": "0",
         "runs": "0",
+        "searchAll": "全部",
+        "searchOrgs": "组织",
+        "searchRepos": "仓库",
+        "searchUsers": "用户",
         "scope": "本地",
         "source": "静态",
         "status": "未连接",
@@ -592,5 +628,53 @@
         "waiting": "0"
       }
     }
+  },
+  "searchResult": {
+    "descriptions": {
+      "all": "正在搜索用户、组织和仓库。",
+      "orgs": "正在搜索 GitHub 组织。",
+      "repos": "正在搜索仓库名称和描述。",
+      "users": "正在搜索 GitHub 用户。"
+    },
+    "empty": {
+      "description": "可以换一个关键词，或放宽搜索范围。",
+      "noQueryDescription": "打开搜索工作区并选择一个搜索动作。",
+      "noQueryTitle": "没有搜索关键词",
+      "title": "没有结果"
+    },
+    "error": {
+      "description": "GitHub 暂时无法返回这些搜索结果。",
+      "retry": "重试",
+      "title": "搜索失败"
+    },
+    "eyebrow": "GitHub Search",
+    "groups": {
+      "orgs": "组织",
+      "repos": "仓库",
+      "users": "用户"
+    },
+    "incomplete": "GitHub 返回的搜索结果不完整。可以缩小搜索范围再试。",
+    "kinds": {
+      "org": "组织",
+      "repo": "仓库",
+      "user": "用户"
+    },
+    "noDescription": "没有描述",
+    "pagination": {
+      "next": "下一页",
+      "previous": "上一页"
+    },
+    "private": "Private",
+    "summary": "{count} 个结果 · 第 {page} 页",
+    "title": "搜索 \"{query}\""
+  },
+  "notFound": {
+    "actions": {
+      "searchAgain": "重新搜索",
+      "searchGitHub": "搜索 GitHub"
+    },
+    "description": "检查拼写、粘贴 GitHub URL，或改为搜索 GitHub 结果。",
+    "eyebrow": "Not Found",
+    "title": "找不到 \"{input}\""
   }
 }

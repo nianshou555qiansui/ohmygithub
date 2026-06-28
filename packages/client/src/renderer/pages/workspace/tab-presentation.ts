@@ -7,6 +7,8 @@ import {
   FileText,
   GitPullRequest,
   Inbox,
+  Search,
+  SearchX,
   UserRound,
 } from 'lucide-vue-next'
 
@@ -176,6 +178,34 @@ export function getWorkspaceTabView(tab: WorkspaceTab): WorkspaceTabView {
     })
   }
 
+  if (tab.type === 'search-result') {
+    return createResourceView(tab, {
+      icon: Search,
+      eyebrowKey: 'workspace.panel.eyebrows.searchResult',
+      headingKey: 'workspace.panel.headings.searchResult',
+      descriptionKey: 'workspace.panel.descriptions.searchResult',
+      stats: [
+        { id: 'query', labelKey: 'workspace.panel.stats.query', value: tab.searchQuery ?? '' },
+        { id: 'mode', labelKey: 'workspace.panel.stats.type', valueKey: searchModeValueKey(tab.searchMode) },
+        { id: 'source', labelKey: 'workspace.panel.stats.source', valueKey: 'workspace.panel.values.githubSearch' },
+      ],
+    })
+  }
+
+  if (tab.type === 'not-found') {
+    return createResourceView(tab, {
+      icon: SearchX,
+      eyebrowKey: 'workspace.panel.eyebrows.notFound',
+      headingKey: 'workspace.panel.headings.notFound',
+      descriptionKey: 'workspace.panel.descriptions.notFound',
+      stats: [
+        { id: 'query', labelKey: 'workspace.panel.stats.query', value: tab.notFoundInput ?? '' },
+        { id: 'source', labelKey: 'workspace.panel.stats.source', valueKey: 'workspace.panel.values.githubSearch' },
+        { id: 'status', labelKey: 'workspace.panel.stats.status', valueKey: 'workspace.panel.values.notFound' },
+      ],
+    })
+  }
+
   if (tab.type === 'org') {
     return createResourceView(tab, {
       icon: Building2,
@@ -292,4 +322,11 @@ function issueCategoryValueKey(category: GitHubIssueCategory | undefined): strin
   if (category === 'created-by-me') return 'workspace.panel.values.createdByMe'
   if (category === 'mentioned-me') return 'workspace.panel.values.mentionedMe'
   return 'workspace.panel.values.inbox'
+}
+
+function searchModeValueKey(mode: GitHubWorkspaceSearchMode | undefined): string {
+  if (mode === 'users') return 'workspace.panel.values.searchUsers'
+  if (mode === 'orgs') return 'workspace.panel.values.searchOrgs'
+  if (mode === 'repos') return 'workspace.panel.values.searchRepos'
+  return 'workspace.panel.values.searchAll'
 }

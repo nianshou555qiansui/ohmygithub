@@ -2,6 +2,14 @@ import type { Component } from 'vue'
 
 export type WorkspaceMessageParams = Record<string, string | number>
 
+export type RepositoryTabId =
+  | 'overview'
+  | 'files'
+  | 'pullRequests'
+  | 'issues'
+  | 'actions'
+  | 'settings'
+
 export type WorkspaceTabType =
   | 'inbox'
   | 'reviews'
@@ -14,6 +22,8 @@ export type WorkspaceTabType =
   | 'issue-list'
   | 'pull-request'
   | 'issue'
+  | 'search-result'
+  | 'not-found'
 
 export interface WorkspacePanelStat {
   id: string
@@ -37,8 +47,12 @@ export interface WorkspaceTab {
   repo?: string
   draftId?: string
   number?: number
+  repositorySection?: RepositoryTabId
   pullRequestCategory?: GitHubPullRequestCategory
   issueCategory?: GitHubIssueCategory
+  searchMode?: GitHubWorkspaceSearchMode
+  searchQuery?: string
+  notFoundInput?: string
 }
 
 export interface WorkspaceBookmarkFolder {
@@ -58,8 +72,12 @@ export interface WorkspaceBookmark {
   repo?: string
   draftId?: string
   number?: number
+  repositorySection?: RepositoryTabId
   pullRequestCategory?: GitHubPullRequestCategory
   issueCategory?: GitHubIssueCategory
+  searchMode?: GitHubWorkspaceSearchMode
+  searchQuery?: string
+  notFoundInput?: string
   avatarUrl?: string
   avatarFallback?: string
 }
@@ -113,7 +131,6 @@ export interface WorkspaceSidebarTreeItem {
   avatarFallback?: string
   isActive?: boolean
   canExpand?: boolean
-  forceExpanded?: boolean
   workItem?: WorkspaceSidebarWorkItem
   children?: WorkspaceSidebarTreeItem[]
   childrenLoader?: WorkspaceSidebarTreeItemLoader

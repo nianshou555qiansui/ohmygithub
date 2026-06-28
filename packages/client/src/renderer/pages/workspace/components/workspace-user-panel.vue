@@ -42,6 +42,15 @@ async function logout(): Promise<void> {
     isLoggingOut.value = false
   }
 }
+
+function openSettings(): void {
+  void router.push({
+    path: '/settings',
+    query: {
+      tab: 'appearance',
+    },
+  })
+}
 </script>
 
 <template>
@@ -86,7 +95,7 @@ async function logout(): Promise<void> {
         <UserCircle />
         <span>{{ t('workspace.userMenu.profile') }}</span>
       </DropdownMenuItem>
-      <DropdownMenuItem>
+      <DropdownMenuItem @select="openSettings">
         <Settings />
         <span>{{ t('workspace.userMenu.settings') }}</span>
       </DropdownMenuItem>

@@ -54,7 +54,6 @@ export function organizationToTreeItem(
     avatarFallback: organizationFallback(organization.login),
     isActive: isActiveItem(itemId, url, context),
     canExpand: true,
-    forceExpanded: shouldForceExpand(itemId, isOwnerDescendantUrl(context.activeUrl, organization.login), context),
     childrenLoader: {
       type: 'organization-repositories',
       owner: organization.login,
@@ -79,7 +78,6 @@ export function bookmarkToTreeItem(
       avatarFallback: bookmark.avatarFallback ?? organizationFallback(bookmark.owner),
       isActive: isActiveItem(itemId, bookmark.url, context),
       canExpand: true,
-      forceExpanded: shouldForceExpand(itemId, isOwnerDescendantUrl(context.activeUrl, bookmark.owner), context),
       childrenLoader: {
         type: 'organization-repositories',
         owner: bookmark.owner,
@@ -131,14 +129,7 @@ export function repositoryToTreeItem(
     url,
     icon: Book,
     isActive: isActiveItem(itemId, url, options),
-    forceExpanded: shouldForceExpand(
-      itemId,
-      isRepositoryDescendantUrl(options.activeUrl, repository.owner, repository.name),
-      options,
-    ),
     children: createRepositoryChildren({
-      activeItemId: options.activeItemId,
-      activeUrl: options.activeUrl,
       labels: options.labels,
       nameWithOwner: repository.nameWithOwner,
       owner: repository.owner,
@@ -149,27 +140,18 @@ export function repositoryToTreeItem(
 }
 
 function createRepositoryChildren(options: {
-  activeItemId: string | null
-  activeUrl: string
   labels: WorkspaceSidebarTreeLabels
   nameWithOwner: string
   owner: string
   repo: string
   scope: string
 }): WorkspaceSidebarTreeItem[] {
-  const url = repositoryUrl(options.owner, options.repo)
-
   return [
     {
       id: scopedId(options.scope, `repo-pull-requests:${options.nameWithOwner}`),
       label: options.labels.pullRequests,
       icon: GitPullRequest,
       canExpand: true,
-      forceExpanded: shouldForceExpand(
-        scopedId(options.scope, `repo-pull-requests:${options.nameWithOwner}`),
-        options.activeUrl.startsWith(`${url}/pull/`),
-        options,
-      ),
       childrenLoader: {
         type: 'repository-pull-requests',
         owner: options.owner,
@@ -182,11 +164,6 @@ function createRepositoryChildren(options: {
       label: options.labels.issues,
       icon: CircleDot,
       canExpand: true,
-      forceExpanded: shouldForceExpand(
-        scopedId(options.scope, `repo-issues:${options.nameWithOwner}`),
-        options.activeUrl.startsWith(`${url}/issues/`),
-        options,
-      ),
       childrenLoader: {
         type: 'repository-issues',
         owner: options.owner,
@@ -214,21 +191,14 @@ function isActiveItem(
   url: string,
   context: { activeItemId: string | null; activeUrl: string },
 ): boolean {
-  return context.activeItemId ? context.activeItemId === itemId : context.activeUrl === url
+  if (context.activeItemId) return context.activeItemId === itemId
+  if (context.activeUrl === url) return true
+
+  return isBaseRepositoryUrlForActiveTab(context.activeUrl, url)
 }
 
-function shouldForceExpand(
-  itemId: string,
-  fallback: boolean,
-  context: { activeItemId: string | null },
-): boolean {
-  return context.activeItemId ? context.activeItemId.startsWith(`${itemId}:`) : fallback
-}
-
-function isOwnerDescendantUrl(url: string, owner: string): boolean {
-  return url.startsWith(`/${owner}/`)
-}
-
-function isRepositoryDescendantUrl(url: string, owner: string, repo: string): boolean {
-  return url.startsWith(`${repositoryUrl(owner, repo)}/`)
+function isBaseRepositoryUrlForActiveTab(activeUrl: string, url: string): boolean {
+  const [activePath, activeQuery = ''] = activeUrl.split('?')
+  const [path, query = ''] = url.split('?')
+  return !query && activePath === path && new URLSearchParams(activeQuery).has('tab')
 }

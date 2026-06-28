@@ -43,6 +43,17 @@
     "usePersonalToken": "Use personal GitHub token",
     "waitingForAuthorization": "Waiting for authorization at"
   },
+  "settings": {
+    "description": "Application settings",
+    "navigation": "Settings navigation",
+    "sections": {
+      "interface": "Interface"
+    },
+    "tabs": {
+      "appearance": "Appearance"
+    },
+    "title": "Settings"
+  },
   "organization": {
     "description": "{owner} is ready for organization-specific navigation. Repository, member, and activity data will be connected here.",
     "eyebrow": "Organization",
@@ -427,6 +438,19 @@
       "resize": "Resize sidebar",
       "search": "Search workspace"
     },
+    "search": {
+      "actions": {
+        "all": "Search \"{query}\"",
+        "goto": "Goto \"{query}\"",
+        "orgs": "Search org with \"{query}\"",
+        "repos": "Search repo with \"{query}\"",
+        "users": "Search user with \"{query}\""
+      },
+      "description": "Search for GitHub accounts, organizations, and repositories.",
+      "placeholder": "Search GitHub or paste a URL",
+      "resolveError": "Could not resolve this target. Try a search instead.",
+      "title": "Search workspace"
+    },
     "tabs": {
       "closeTab": "Close {title}",
       "items": {
@@ -519,8 +543,10 @@
         "pullRequestList": "Pull requests in this category are listed from the sidebar tree. A full list view can be connected here later.",
         "issue": "Issue data for {owner}/{repo} #{number} will be connected here.",
         "issueList": "Issues in this category are listed from the sidebar tree. A full list view can be connected here later.",
+        "notFound": "No GitHub account, organization, or repository matched this input.",
         "repo": "{owner}/{repo} is open as a repository tab. This version only keeps URL, type, and placeholder state.",
-        "reviews": "Keep pull requests and merge checks in a focused tab that can grow into real data later."
+        "reviews": "Keep pull requests and merge checks in a focused tab that can grow into real data later.",
+        "searchResult": "Results are loaded from the GitHub Search API."
       },
       "eyebrows": {
         "account": "Account",
@@ -528,11 +554,13 @@
         "draft": "Draft",
         "issue": "Issue",
         "issueList": "Issue List",
+        "notFound": "Not Found",
         "org": "Organization",
         "pullRequest": "Pull Request",
         "pullRequestList": "Pull Request List",
         "repo": "Repository",
         "review": "Review",
+        "searchResult": "Search",
         "triage": "Triage"
       },
       "headings": {
@@ -542,11 +570,13 @@
         "inbox": "Inbox",
         "issue": "{owner}/{repo} #{number}",
         "issueList": "{title}",
+        "notFound": "{title}",
         "org": "{owner}",
         "pullRequest": "{owner}/{repo} #{number}",
         "pullRequestList": "{title}",
         "repo": "{owner}/{repo}",
-        "reviews": "Review Queue"
+        "reviews": "Review Queue",
+        "searchResult": "{title}"
       },
       "stats": {
         "account": "Account",
@@ -558,6 +588,7 @@
         "number": "Number",
         "organization": "Organization",
         "owner": "Owner",
+        "query": "Query",
         "repos": "Repositories",
         "repository": "Repository",
         "reviews": "Reviews",
@@ -580,11 +611,16 @@
         "mentionedMe": "Mentioned Me",
         "needsReview": "Needs Review",
         "mentions": "0",
+        "notFound": "Not found",
         "org": "Organization",
         "placeholder": "Not connected",
         "repos": "3",
         "reviews": "0",
         "runs": "0",
+        "searchAll": "All",
+        "searchOrgs": "Organizations",
+        "searchRepos": "Repositories",
+        "searchUsers": "Users",
         "scope": "Local",
         "source": "Static",
         "status": "Disconnected",
@@ -592,5 +628,53 @@
         "waiting": "0"
       }
     }
+  },
+  "searchResult": {
+    "descriptions": {
+      "all": "Searching users, organizations, and repositories.",
+      "orgs": "Searching GitHub organizations.",
+      "repos": "Searching repository names and descriptions.",
+      "users": "Searching GitHub users."
+    },
+    "empty": {
+      "description": "Try a different query or broaden the search.",
+      "noQueryDescription": "Open Search workspace and choose a search action.",
+      "noQueryTitle": "No search query",
+      "title": "No results"
+    },
+    "error": {
+      "description": "GitHub could not return these search results.",
+      "retry": "Retry",
+      "title": "Search failed"
+    },
+    "eyebrow": "GitHub Search",
+    "groups": {
+      "orgs": "Organizations",
+      "repos": "Repositories",
+      "users": "Users"
+    },
+    "incomplete": "GitHub returned incomplete search results. Try narrowing the search.",
+    "kinds": {
+      "org": "Org",
+      "repo": "Repo",
+      "user": "User"
+    },
+    "noDescription": "No description",
+    "pagination": {
+      "next": "Next page",
+      "previous": "Previous page"
+    },
+    "private": "Private",
+    "summary": "{count} results · Page {page}",
+    "title": "Search \"{query}\""
+  },
+  "notFound": {
+    "actions": {
+      "searchAgain": "Search again",
+      "searchGitHub": "Search GitHub"
+    },
+    "description": "Check the spelling, paste a GitHub URL, or search GitHub results.",
+    "eyebrow": "Not Found",
+    "title": "Could not find \"{input}\""
   }
 }

@@ -6,6 +6,7 @@ import { useWorkspaceBookmarks } from './composables/use-workspace-bookmarks'
 import { useOrganizationsQuery } from '../../composables/github/use-organizations'
 import { useWorkspaceTabs } from './composables/use-workspace-tabs'
 import WorkspaceSidebar from './components/workspace-sidebar.vue'
+import WorkspaceSearchDialog from './components/workspace-search-dialog.vue'
 import WorkspaceTabs from './components/workspace-tabs.vue'
 
 const SIDEBAR_WIDTH_STORAGE_KEY = 'oh-my-github:workspace-sidebar-width:v1'
@@ -15,6 +16,7 @@ const MAX_SIDEBAR_WIDTH = 640
 
 const isSidebarOpen = ref(true)
 const isSidebarResizing = ref(false)
+const isSearchDialogOpen = ref(false)
 const isWindowFullscreen = ref(false)
 const sidebarWidth = ref(readStoredSidebarWidth())
 const viewer = ref<AuthViewer | null>(null)
@@ -24,8 +26,13 @@ let resizeStartWidth = 0
 
 const {
   activeUrl,
+  canGoBack,
+  canGoForward,
   closeTab,
   createTab,
+  goBack,
+  goForward,
+  replaceActiveTabUrl,
   selectTab,
   tabs,
 } = useWorkspaceTabs()
@@ -128,6 +135,10 @@ function addTabBookmark(input: {
     title: input.title,
   })
 }
+
+function openSearchDialog(): void {
+  isSearchDialogOpen.value = true
+}
 </script>
 
 <template>
@@ -147,6 +158,7 @@ function addTabBookmark(input: {
       :organizations-loading="organizationsLoading"
       :viewer="viewer"
       :width="sidebarWidth"
+      @search="openSearchDialog"
       @select="selectTab"
       @start-resize="startSidebarResize"
     />
@@ -158,15 +170,26 @@ function addTabBookmark(input: {
           :bookmark-folders="bookmarkFolders"
           :bookmarks="bookmarks"
           :bookmarked-urls="bookmarkedUrls"
+          :can-go-back="canGoBack"
+          :can-go-forward="canGoForward"
           :is-fullscreen="isWindowFullscreen"
           :tabs="tabs"
+          @back="goBack"
           @bookmark="addTabBookmark"
           @close="closeTab"
           @create="createTab"
+          @forward="goForward"
+          @replace-active-url="replaceActiveTabUrl"
           @remove-bookmark="removeBookmark"
+          @search="openSearchDialog"
           @select="selectTab"
         />
       </div>
     </SidebarInset>
+
+    <WorkspaceSearchDialog
+      v-model:open="isSearchDialogOpen"
+      @navigate="selectTab"
+    />
   </SidebarProvider>
 </template>

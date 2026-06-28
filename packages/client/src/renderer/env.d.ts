@@ -39,6 +39,51 @@ type GitHubRepository = {
   url: string
 }
 
+type GitHubWorkspaceSearchMode = 'users' | 'orgs' | 'repos' | 'all'
+
+type GitHubWorkspaceSearchItemKind = 'user' | 'org' | 'repo'
+
+type GitHubWorkspaceSearchItem = {
+  id: number
+  kind: GitHubWorkspaceSearchItemKind
+  title: string
+  description: string | null
+  url: string
+  workspaceUrl: string
+  avatarUrl?: string
+  owner?: string
+  repo?: string
+  nameWithOwner?: string
+  isPrivate?: boolean
+  updatedAt?: string | null
+}
+
+type GitHubWorkspaceSearchResult = {
+  mode: GitHubWorkspaceSearchMode
+  query: string
+  items: GitHubWorkspaceSearchItem[]
+  totalCount: number
+  page: number
+  perPage: number
+  hasNextPage: boolean
+  incompleteResults: boolean
+}
+
+type GitHubWorkspaceGotoResult =
+  | {
+      status: 'found'
+      input: string
+      type: 'account' | 'org' | 'repo'
+      title: string
+      url: string
+    }
+  | {
+      status: 'not_found'
+      input: string
+      reason: 'invalid' | 'not_found'
+      url: string
+    }
+
 type GitHubRepositoryViewerState = {
   isStarred: boolean
   isWatching: boolean
@@ -235,6 +280,13 @@ type SearchRepositoryPullRequestsOptions = {
   state?: GitHubPullRequestSearchState
 }
 
+type SearchWorkspaceOptions = {
+  mode: GitHubWorkspaceSearchMode
+  query: string
+  page?: number
+  perPage?: number
+}
+
 type GitHubPullRequestSearchResult = {
   items: GitHubPullRequest[]
   totalCount: number
@@ -313,6 +365,10 @@ interface Window {
       ) => Promise<GitHubRepositoryFilePreview>
       setStarred: (owner: string, repo: string, starred: boolean) => Promise<void>
       setWatching: (owner: string, repo: string, watching: boolean) => Promise<void>
+    }
+    search: {
+      resolveGoto: (input: string) => Promise<GitHubWorkspaceGotoResult>
+      searchWorkspace: (options: SearchWorkspaceOptions) => Promise<GitHubWorkspaceSearchResult>
     }
     auth: {
       get: () => Promise<AuthState>

@@ -32,6 +32,7 @@ import {
   EmptyTitle,
 } from '@oh-my-github/ui'
 import { useRepositoryOverviewQuery } from '../../composables/github/use-repositories'
+import { createRepositoryWorkspaceUrl } from '../workspace/workspace-url'
 import RepositoryOverview from './components/overview/repository-overview.vue'
 import PullRequestsSection from './components/pulls/section.vue'
 import FilesPanel from './components/files/files-panel.vue'
@@ -39,6 +40,10 @@ import RepositorySidebar from './components/repository-sidebar.vue'
 
 const props = defineProps<{
   tab: WorkspaceTab
+}>()
+
+const emit = defineEmits<{
+  replaceActiveUrl: [url: string]
 }>()
 
 const repositorySections: readonly RepositorySection[] = [
@@ -54,7 +59,7 @@ type RepositoryActionId = 'star' | 'watch'
 
 const { t } = useI18n()
 const router = useRouter()
-const activeSection = ref<RepositorySectionId>('overview')
+const activeSection = ref<RepositorySectionId>(props.tab.repositorySection ?? 'overview')
 const activeDocumentKind = ref<GitHubRepositoryDocumentKind>('readme')
 const viewerState = ref<GitHubRepositoryViewerState | null>(null)
 const isViewerStateLoading = ref(false)
@@ -249,6 +254,17 @@ function openOwner(): void {
   void router.push(`/${encodeURIComponent(owner.value)}`)
 }
 
+function setActiveSection(section: RepositorySectionId): void {
+  activeSection.value = section
+
+  if (!hasRepositoryIdentity.value) return
+
+  const nextUrl = createRepositoryWorkspaceUrl(owner.value, repository.value, section)
+  if (nextUrl === props.tab.url) return
+
+  emit('replaceActiveUrl', nextUrl)
+}
+
 function formatNumber(value: number): string {
   return new Intl.NumberFormat().format(value)
 }
@@ -334,10 +350,11 @@ async function toggleWatching(): Promise<void> {
 }
 
 watch(
-  () => props.tab.url,
-  () => {
-    activeSection.value = 'overview'
+  () => props.tab.repositorySection,
+  (section) => {
+    activeSection.value = section ?? 'overview'
   },
+  { immediate: true },
 )
 
 watch(
@@ -367,7 +384,7 @@ watch(
 <template>
   <section class="flex h-full min-h-[34rem] gap-3 bg-background p-3">
     <RepositorySidebar
-      v-model:active-section="activeSection"
+      :active-section="activeSection"
       :formatted-star-count="formattedStarCount"
       :is-starred="isStarred"
       :is-watching="isWatching"
@@ -381,6 +398,7 @@ watch(
       @open-owner="openOwner"
       @toggle-starred="toggleStarred"
       @toggle-watching="toggleWatching"
+      @update:active-section="setActiveSection"
     />
 
     <main class="min-w-0 flex-1 overflow-auto px-3">

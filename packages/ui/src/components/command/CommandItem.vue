@@ -8,18 +8,25 @@ import { menuItemClass } from '#/lib/menu'
 import { cn } from '#/lib/utils'
 import { useCommand, useCommandGroup } from '.'
 
-const props = defineProps<ListboxItemProps & { class?: HTMLAttributes['class'] }>()
+const props = defineProps<ListboxItemProps & {
+  class?: HTMLAttributes['class']
+  forceRender?: boolean
+}>()
 const emits = defineEmits<ListboxItemEmits>()
 
-const delegatedProps = reactiveOmit(props, 'class')
+const delegatedProps = reactiveOmit(props, 'class', 'forceRender')
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
 
 const id = useId()
 const { filterState, allItems, allGroups, onItemPointerLeave } = useCommand()
-const groupContext = useCommandGroup()
+const groupContext = useCommandGroup(null)
 
 const isRender = computed(() => {
+  if (props.forceRender) {
+    return true
+  }
+
   if (!filterState.search) {
     return true
   }

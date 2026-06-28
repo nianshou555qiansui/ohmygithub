@@ -10,15 +10,21 @@ import { provideCommandGroupContext, useCommand } from '.'
 
 const props = defineProps<ListboxGroupProps & {
   class?: HTMLAttributes['class']
+  forceRender?: boolean
   heading?: string
 }>()
 
-const delegatedProps = reactiveOmit(props, 'class')
+const delegatedProps = reactiveOmit(props, 'class', 'forceRender')
 
 const { allGroups, filterState } = useCommand()
 const id = useId()
 
-const isRender = computed(() => !filterState.search ? true : filterState.filtered.groups.has(id))
+const isRender = computed(() => {
+  if (props.forceRender || !filterState.search)
+    return true
+
+  return filterState.filtered.groups.has(id)
+})
 
 provideCommandGroupContext({ id })
 onMounted(() => {

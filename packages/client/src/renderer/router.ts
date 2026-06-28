@@ -12,6 +12,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('./pages/workspace/workspace-page.vue')
   },
   {
+    path: '/settings',
+    name: 'settings',
+    component: () => import('./pages/settings/settings-page.vue')
+  },
+  {
     path: '/debug/rich-content',
     name: 'debug-rich-content',
     component: () => import('./pages/debug/rich-content-debug-page.vue')

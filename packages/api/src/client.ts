@@ -4,10 +4,12 @@ import { InboxApi } from './modules/inbox'
 import { IssuesApi } from './modules/issues'
 import { PullsApi } from './modules/pulls'
 import { RepositoriesApi } from './modules/repositories'
+import { SearchApi } from './modules/search'
 import { createOctokit, type GitHubOctokit } from './transport'
 import type {
   GitHubApiOptions,
   GitHubClient,
+  GitHubWorkspaceGotoResult,
   GitHubIssue,
   GitHubOrganization,
   GitHubPullRequest,
@@ -16,6 +18,7 @@ import type {
   GitHubRepositoryFilePreview,
   GitHubRepositoryFileTree,
   GitHubRepositoryOverview,
+  GitHubWorkspaceSearchResult,
   GitHubWorkspaceItem
 } from './types'
 
@@ -27,6 +30,7 @@ export interface GitHubApi extends GitHubClient {
   readonly issues: IssuesApi
   readonly pulls: PullsApi
   readonly repositories: RepositoriesApi
+  readonly search: SearchApi
 }
 
 export function createGitHubApi(options: GitHubApiOptions): GitHubApi {
@@ -37,6 +41,7 @@ export function createGitHubApi(options: GitHubApiOptions): GitHubApi {
   const issues = new IssuesApi(octokit)
   const pulls = new PullsApi(octokit)
   const repositories = new RepositoriesApi(octokit)
+  const search = new SearchApi(octokit)
 
   return {
     octokit,
@@ -46,8 +51,11 @@ export function createGitHubApi(options: GitHubApiOptions): GitHubApi {
     issues,
     pulls,
     repositories,
+    search,
     listViewerOrganizations: () => accounts.listViewerOrganizations(),
     listOrganizationRepositories: (owner) => accounts.listOrganizationRepositories(owner),
+    resolveWorkspaceGoto: (input) => search.resolveWorkspaceGoto(input),
+    searchWorkspace: (options) => search.searchWorkspace(options),
     getRepositoryViewerState: (options) => repositories.getViewerState(options),
     getRepositoryOverview: (options) => repositories.getOverview(options),
     listRepositoryFiles: (options) => repositories.listFiles(options),
@@ -76,5 +84,7 @@ export type {
   GitHubRepositoryFilePreview,
   GitHubRepositoryFileTree,
   GitHubRepositoryOverview,
+  GitHubWorkspaceGotoResult,
+  GitHubWorkspaceSearchResult,
   GitHubWorkspaceItem
 }
