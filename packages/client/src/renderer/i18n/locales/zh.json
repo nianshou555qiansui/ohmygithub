@@ -484,6 +484,44 @@
   "issue": {
     "description": "{repository} {number} 已作为 Issue 工作页打开。讨论、标签和项目数据会在这里继续接入。",
     "eyebrow": "Issue",
+    "actions": {
+      "copyUrl": "复制链接",
+      "more": "更多 Issue 操作",
+      "openOnGitHub": "在 GitHub 打开"
+    },
+    "activity": {
+      "empty": "这个 Issue 还没有加载到动态。"
+    },
+    "comment": {
+      "emptyPreview": "没有可预览的内容。",
+      "error": "无法发表评论。请检查权限后重试。",
+      "inputLabel": "Issue 评论",
+      "placeholder": "留下评论",
+      "preview": "预览",
+      "submit": "评论",
+      "write": "编辑"
+    },
+    "empty": {
+      "body": "没有填写描述。",
+      "missingIdentity": {
+        "description": "打开带有 owner、仓库名和 Issue 编号的 tab 后，才会加载讨论。",
+        "title": "Issue 不可用"
+      },
+      "unavailable": {
+        "description": "GitHub 没有为这个 tab 返回 Issue。它可能已移动、删除，或需要更多权限。",
+        "title": "找不到 Issue"
+      }
+    },
+    "error": {
+      "description": "无法从 GitHub 加载 Issue 详情。请检查连接后重试。",
+      "retry": "重试",
+      "title": "无法加载 Issue"
+    },
+    "loading": "正在加载 Issue...",
+    "meta": {
+      "createdBy": "{author} 于 {date} 打开",
+      "updated": "更新于 {date}"
+    },
     "sections": {
       "activity": {
         "description": "后续可以把评论、分配和项目更新收束到这里。",
@@ -494,12 +532,59 @@
         "title": "概览"
       }
     },
+    "sidebar": {
+      "dates": {
+        "closed": "关闭时间",
+        "created": "创建时间",
+        "due": "截止 {date}",
+        "updated": "更新时间"
+      },
+      "development": {
+        "branches": "分支",
+        "commits": "提交",
+        "pullRequests": "Pull Requests"
+      },
+      "empty": {
+        "assignees": "没有负责人",
+        "labels": "没有标签",
+        "milestone": "没有里程碑",
+        "participants": "没有参与者"
+      },
+      "sections": {
+        "assignees": "负责人",
+        "dates": "日期",
+        "development": "Development",
+        "labels": "标签",
+        "milestone": "里程碑",
+        "participants": "参与者"
+      }
+    },
+    "states": {
+      "completed": "已完成",
+      "not_planned": "不计划",
+      "open": "Open",
+      "unknown": "未知"
+    },
+    "timeline": {
+      "assigned": "指派给 {target}",
+      "closed": "关闭了这个 Issue",
+      "crossReferenced": "引用了 {source}",
+      "generic": "更新了时间线",
+      "labeled": "添加了 {label}",
+      "mentioned": "提及了这个 Issue",
+      "renamed": "从“{from}”重命名为“{to}”",
+      "reopened": "重新打开了这个 Issue",
+      "unassigned": "移除了 {target} 的指派",
+      "unlabeled": "移除了 {label}"
+    },
     "summary": {
       "comments": "评论",
       "labels": "标签",
       "repository": "仓库"
     },
     "values": {
+      "notAvailable": "暂不可用",
+      "unknown": "未知",
       "placeholder": "未接入"
     }
   },

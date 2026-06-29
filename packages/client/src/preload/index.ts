@@ -17,7 +17,11 @@ const api = {
     listRepositoryIssues: (owner: string, repo: string) =>
       ipcRenderer.invoke('issues:list-repository', owner, repo),
     searchRepositoryIssues: (options: unknown) =>
-      ipcRenderer.invoke('issues:search-repository', options)
+      ipcRenderer.invoke('issues:search-repository', options),
+    getIssueDetail: (owner: string, repo: string, number: number) =>
+      ipcRenderer.invoke('issues:get-detail', owner, repo, number),
+    createIssueComment: (owner: string, repo: string, number: number, body: string) =>
+      ipcRenderer.invoke('issues:create-comment', owner, repo, number, body)
   },
   pulls: {
     listPullRequestCategory: (category: string) => ipcRenderer.invoke('pulls:list-category', category),
