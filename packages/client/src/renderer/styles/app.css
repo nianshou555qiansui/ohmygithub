@@ -60,6 +60,11 @@ body {
   color: var(--foreground);
 }
 
+html:not([data-focus-ring-modality="keyboard"]) :focus-visible {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
 .rich-content-code:not([data-themed-background="true"]) .shiki,
 .rich-content-code:not([data-themed-background="true"]) .shiki code {
   background: transparent !important;
