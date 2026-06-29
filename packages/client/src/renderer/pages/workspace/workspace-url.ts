@@ -1,10 +1,11 @@
 import type { RouteLocationNormalizedLoaded } from 'vue-router'
-import type { RepositoryTabId, WorkspaceTab, WorkspaceTabType } from './types'
+import type { AccountTabId, RepositoryTabId, WorkspaceTab, WorkspaceTabType } from './types'
 
 export const DEFAULT_WORKSPACE_URL = '/inbox'
 
 const INTERNAL_TYPES = new Set<WorkspaceTabType>(['inbox', 'reviews', 'activity'])
 const INTERNAL_PATHS = new Set(['draft', 'pull-requests', 'issues', 'search', 'not-found'])
+const DEFAULT_ACCOUNT_SECTION: AccountTabId = 'overview'
 const DEFAULT_REPOSITORY_SECTION: RepositoryTabId = 'overview'
 const PULL_REQUEST_CATEGORIES = new Set<GitHubPullRequestCategory>([
   'created-by-me',
@@ -55,6 +56,10 @@ export function routeToWorkspaceUrl(route: RouteLocationNormalizedLoaded): strin
   }
 
   const type = typeof route.query.type === 'string' ? route.query.type : ''
+  if (!type && isAccountWorkspacePath(path)) {
+    return createAccountUrlFromPath(path, typeof route.query.tab === 'string' ? route.query.tab : '')
+  }
+
   if (!type || isReservedInternalPath(path)) return path
   if (!isWorkspaceTabType(type)) return path
 
@@ -88,6 +93,10 @@ export function normalizeWorkspaceUrl(url: string): string {
     return createRepositoryUrlFromPath(path, search.get('tab') ?? '')
   }
 
+  if (type !== 'org' && isAccountWorkspacePath(path)) {
+    return createAccountUrlFromPath(path, search.get('tab') ?? '')
+  }
+
   if (type !== 'org' || isReservedInternalPath(path)) {
     return path
   }
@@ -102,6 +111,14 @@ export function createRepositoryWorkspaceUrl(
 ): string {
   const path = `/${sanitizeSegment(owner)}/${sanitizeSegment(repo)}`
   return createRepositoryUrlFromPath(path, repositorySectionToQuery(section))
+}
+
+export function createAccountWorkspaceUrl(
+  login: string,
+  section: AccountTabId = DEFAULT_ACCOUNT_SECTION,
+): string {
+  const path = `/${sanitizeSegment(login)}`
+  return createAccountUrlFromPath(path, accountSectionToQuery(section))
 }
 
 export function isReservedInternalPath(path: string): boolean {
@@ -219,11 +236,13 @@ function parseWorkspaceUrl(url: string): Omit<WorkspaceTab, 'title'> {
   }
 
   const ownerType = queryType === 'org' ? 'org' : 'account'
+  const accountSection = sanitizeAccountSection(query.get('tab') ?? '')
 
   return {
-    url: ownerType === 'org' ? `/${owner}?type=org` : `/${owner}`,
+    url: ownerType === 'org' ? `/${owner}?type=org` : createAccountWorkspaceUrl(owner, accountSection),
     type: ownerType,
     owner,
+    accountSection: ownerType === 'org' ? undefined : accountSection,
   }
 }
 
@@ -274,9 +293,26 @@ function createRepositoryUrlFromPath(path: string, rawSection: string): string {
   return `${path}?${params.toString()}`
 }
 
+function createAccountUrlFromPath(path: string, rawSection: string): string {
+  const accountSection = sanitizeAccountSection(rawSection)
+
+  if (accountSection === DEFAULT_ACCOUNT_SECTION) {
+    return path
+  }
+
+  const params = new URLSearchParams()
+  params.set('tab', accountSectionToQuery(accountSection))
+  return `${path}?${params.toString()}`
+}
+
 function isRepositoryWorkspacePath(path: string): boolean {
   const segments = normalizeWorkspacePath(path).split('/').filter(Boolean)
   return segments.length === 2 && !isReservedInternalPath(path)
+}
+
+function isAccountWorkspacePath(path: string): boolean {
+  const segments = normalizeWorkspacePath(path).split('/').filter(Boolean)
+  return segments.length === 1 && !isReservedInternalPath(path)
 }
 
 function createSearchUrl(mode: GitHubWorkspaceSearchMode, query: string): string {
@@ -328,8 +364,18 @@ function sanitizeRepositorySection(value: string | undefined): RepositoryTabId {
   return DEFAULT_REPOSITORY_SECTION
 }
 
+function sanitizeAccountSection(value: string | undefined): AccountTabId {
+  if (value === 'repositories') return 'repositories'
+  if (value === 'stars') return 'stars'
+  return DEFAULT_ACCOUNT_SECTION
+}
+
 function repositorySectionToQuery(section: RepositoryTabId): string {
   return section === 'pullRequests' ? 'pull-requests' : section
+}
+
+function accountSectionToQuery(section: AccountTabId): string {
+  return section
 }
 
 function sanitizeNumber(value: string | undefined): number | null {

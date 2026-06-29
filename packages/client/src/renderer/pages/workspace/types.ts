@@ -10,6 +10,11 @@ export type RepositoryTabId =
   | 'actions'
   | 'settings'
 
+export type AccountTabId =
+  | 'overview'
+  | 'repositories'
+  | 'stars'
+
 export type WorkspaceTabType =
   | 'inbox'
   | 'reviews'
@@ -47,6 +52,7 @@ export interface WorkspaceTab {
   repo?: string
   draftId?: string
   number?: number
+  accountSection?: AccountTabId
   repositorySection?: RepositoryTabId
   pullRequestCategory?: GitHubPullRequestCategory
   issueCategory?: GitHubIssueCategory
@@ -72,6 +78,7 @@ export interface WorkspaceBookmark {
   repo?: string
   draftId?: string
   number?: number
+  accountSection?: AccountTabId
   repositorySection?: RepositoryTabId
   pullRequestCategory?: GitHubPullRequestCategory
   issueCategory?: GitHubIssueCategory
@@ -84,6 +91,7 @@ export interface WorkspaceBookmark {
 
 export interface WorkspaceSidebarTreeItemLoader {
   type:
+    | 'account-repositories'
     | 'organization-repositories'
     | 'pull-request-category'
     | 'issue-category'
@@ -129,13 +137,78 @@ export interface WorkspaceSidebarTreeItemStateText {
   errorKey: string
 }
 
+export type WorkspaceSidebarTreeItemActionContext =
+  | {
+      kind: 'bookmark'
+      bookmarkId: string
+      bookmarkFolderId: string | null
+      githubUrl: string | null
+    }
+  | {
+      kind: 'bookmark-folder'
+      folderId: string
+    }
+  | {
+      kind: 'account'
+      login: string
+      githubUrl: string
+    }
+  | {
+      kind: 'organization'
+      login: string
+      githubUrl: string
+    }
+  | {
+      kind: 'repository'
+      owner: string
+      repo: string
+      githubUrl: string
+    }
+  | {
+      kind: 'pull-request'
+      owner: string
+      repo: string
+      number: number
+      githubUrl: string
+    }
+  | {
+      kind: 'issue'
+      owner: string
+      repo: string
+      number: number
+      githubUrl: string
+    }
+  | {
+      kind: 'group'
+      githubUrl: string | null
+    }
+
+export type WorkspaceSidebarTreeMenuAction =
+  | { type: 'open-new-tab'; item: WorkspaceSidebarTreeItem }
+  | { type: 'copy-github-url'; item: WorkspaceSidebarTreeItem; url: string }
+  | { type: 'open-github-url'; item: WorkspaceSidebarTreeItem; url: string }
+  | { type: 'rename-bookmark'; item: WorkspaceSidebarTreeItem; bookmarkId: string }
+  | { type: 'delete-bookmark'; item: WorkspaceSidebarTreeItem; bookmarkId: string }
+  | { type: 'move-bookmark'; item: WorkspaceSidebarTreeItem; bookmarkId: string; folderId: string | null }
+  | { type: 'open-bookmark-folder'; item: WorkspaceSidebarTreeItem; folderId: string }
+  | { type: 'rename-bookmark-folder'; item: WorkspaceSidebarTreeItem; folderId: string }
+  | { type: 'delete-bookmark-folder'; item: WorkspaceSidebarTreeItem; folderId: string }
+  | { type: 'toggle-organization-pin'; item: WorkspaceSidebarTreeItem; login: string }
+
+export interface WorkspaceSidebarTreeSortInput {
+  listId: string
+  itemIds: string[]
+}
+
 export interface WorkspaceSidebarTreeItem {
   id: string
   label: string
   url?: string
+  actionContext?: WorkspaceSidebarTreeItemActionContext
   icon?: Component
   avatarUrl?: string
   avatarFallback?: string
+  avatarShape?: 'circle' | 'square'
   isActive?: boolean
   canExpand?: boolean
   workItem?: WorkspaceSidebarWorkItem

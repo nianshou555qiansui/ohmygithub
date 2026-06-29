@@ -17,6 +17,7 @@ import { getWorkspaceTabView } from '../tab-presentation'
 const props = defineProps<{
   isActive: boolean
   tab: WorkspaceTab
+  viewer: AuthViewer | null
 }>()
 
 const emit = defineEmits<{
@@ -41,6 +42,8 @@ function translate(key: string, params?: WorkspaceMessageParams): string {
   <AccountPage
     v-else-if="tab.type === 'account'"
     :tab="tab"
+    :viewer="viewer"
+    @replace-active-url="emit('replaceActiveUrl', $event)"
   />
 
   <RepositoryPage
