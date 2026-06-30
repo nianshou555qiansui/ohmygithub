@@ -401,6 +401,12 @@ export type GitHubIssueCategory =
   | 'inbox'
   | 'mentioned-me'
 
+export interface GitHubLabel {
+  name: string
+  color: string
+  description: string | null
+}
+
 export interface GitHubPullRequest {
   id: string
   owner: string
@@ -755,7 +761,7 @@ export interface GitHubWorkspaceItem {
   state: GitHubItemState
   author: GitHubActor
   updatedAt: string
-  labels: string[]
+  labels: GitHubLabel[]
   summary: string
   url?: string
 }

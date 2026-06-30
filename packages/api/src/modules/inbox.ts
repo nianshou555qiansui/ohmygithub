@@ -7,7 +7,7 @@ type GraphQLActor = {
 } | null
 
 interface GraphQLLabelConnection {
-  nodes?: Array<{ name: string } | null> | null
+  nodes?: Array<{ name: string; color?: string | null; description?: string | null } | null> | null
 }
 
 interface GraphQLRepository {
@@ -60,6 +60,8 @@ const viewerWorkItemsQuery = `
           labels(first: 8) {
             nodes {
               name
+              color
+              description
             }
           }
         }
@@ -83,6 +85,8 @@ const viewerWorkItemsQuery = `
           labels(first: 8) {
             nodes {
               name
+              color
+              description
             }
           }
         }
@@ -132,7 +136,7 @@ export class InboxApi {
           login: notification.reason
         },
         updatedAt: notification.updated_at,
-        labels: [notification.reason],
+        labels: [{ name: notification.reason, color: '', description: null }],
         summary: notification.subject.type,
         url: notification.repository.html_url
       }
@@ -180,7 +184,11 @@ function mapGraphQLNodes(
           avatarUrl: node.author?.avatarUrl ?? undefined
         },
         updatedAt: node.updatedAt,
-        labels: (node.labels?.nodes ?? []).flatMap((label) => (label?.name ? [label.name] : [])),
+        labels: (node.labels?.nodes ?? []).flatMap((label) =>
+          label?.name
+            ? [{ name: label.name, color: label.color ?? '', description: label.description ?? null }]
+            : []
+        ),
         summary: node.repository.nameWithOwner,
         url: node.url
       }

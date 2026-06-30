@@ -9,7 +9,7 @@ import {
 import {
   Badge,
 } from '@oh-my-github/ui'
-import { GitHubActorLink, WorkItemStateIcon } from '../../../../components'
+import { GitHubActorLink, LabelBadge, WorkItemStateIcon } from '../../../../components'
 
 const props = defineProps<{
   pullRequest: GitHubPullRequest
@@ -108,14 +108,11 @@ function selectPullRequest(): void {
         v-if="pullRequest.labels.length > 0"
         class="flex min-w-0 flex-wrap gap-1.5"
       >
-        <Badge
+        <LabelBadge
           v-for="label in pullRequest.labels"
-          :key="label"
-          size="sm"
-          variant="outline"
-        >
-          {{ label }}
-        </Badge>
+          :key="label.name"
+          :label="label"
+        />
       </div>
     </div>
   </div>

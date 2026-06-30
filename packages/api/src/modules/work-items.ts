@@ -1,10 +1,10 @@
-import type { GitHubActor } from '../types'
+import type { GitHubActor, GitHubLabel } from '../types'
 import type { GitHubOctokit } from '../transport'
 
 export type WorkItemKind = 'pull-request' | 'issue'
 
 export interface GraphQLLabelConnection {
-  nodes?: Array<{ name: string } | null> | null
+  nodes?: Array<{ name: string; color?: string | null; description?: string | null } | null> | null
 }
 
 export interface GraphQLRepositoryReference {
@@ -46,8 +46,12 @@ export function normalizeActor(actor: GraphQLWorkItemBase['author']): GitHubActo
   }
 }
 
-export function mapLabels(labels: GraphQLLabelConnection | null | undefined): string[] {
-  return (labels?.nodes ?? []).flatMap((label) => (label?.name ? [label.name] : []))
+export function mapLabels(labels: GraphQLLabelConnection | null | undefined): GitHubLabel[] {
+  return (labels?.nodes ?? []).flatMap((label) =>
+    label?.name
+      ? [{ name: label.name, color: label.color ?? '', description: label.description ?? null }]
+      : []
+  )
 }
 
 export function splitRepositoryName(nameWithOwner: string): { owner: string; repo: string; repository: string } {

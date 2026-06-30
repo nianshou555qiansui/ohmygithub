@@ -1,6 +1,8 @@
 export interface WorkItemLabel {
   id?: string | number
   name: string
+  color?: string | null
+  description?: string | null
 }
 
 export type WorkItemLabelInput = string | WorkItemLabel

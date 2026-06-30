@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { WorkItemLabelInput } from './types'
 import { computed } from 'vue'
-import { Badge } from '@oh-my-github/ui'
+import LabelBadge from './label-badge.vue'
 
 const props = defineProps<{
   labels: WorkItemLabelInput[]
@@ -10,21 +10,21 @@ const props = defineProps<{
 
 const visibleLabels = computed(() =>
   props.labels
-    .map((label, index) => ({
-      id: labelKey(label, index),
-      name: labelName(label),
-    }))
+    .map((label, index) => normalizeLabel(label, index))
     .filter((label) => label.name.length > 0)
 )
 
-function labelName(label: WorkItemLabelInput): string {
-  return typeof label === 'string' ? label.trim() : label.name.trim()
-}
+function normalizeLabel(label: WorkItemLabelInput, index: number) {
+  if (typeof label === 'string') {
+    return { key: `${label}-${index}`, name: label.trim(), color: '', description: null }
+  }
 
-function labelKey(label: WorkItemLabelInput, index: number): string {
-  if (typeof label === 'string') return `${label}-${index}`
-
-  return String(label.id ?? `${label.name}-${index}`)
+  return {
+    key: String(label.id ?? `${label.name}-${index}`),
+    name: label.name.trim(),
+    color: label.color ?? '',
+    description: label.description ?? null
+  }
 }
 </script>
 
@@ -33,15 +33,11 @@ function labelKey(label: WorkItemLabelInput, index: number): string {
     v-if="visibleLabels.length > 0"
     class="flex min-w-0 flex-wrap items-center gap-1.5"
   >
-    <Badge
+    <LabelBadge
       v-for="label in visibleLabels"
-      :key="label.id"
-      class="max-w-full"
-      size="sm"
-      variant="secondary"
-    >
-      <span class="truncate">{{ label.name }}</span>
-    </Badge>
+      :key="label.key"
+      :label="label"
+    />
   </div>
   <p
     v-else-if="emptyLabel"
