@@ -60,6 +60,9 @@ importers:
       '@tanstack/vue-virtual':
         specifier: ^3.13.30
         version: 3.13.30(vue@3.5.39(typescript@5.9.3))
+      '@terrastruct/d2':
+        specifier: ^0.1.33
+        version: 0.1.33
       '@vee-validate/zod':
         specifier: ^4.15.1
         version: 4.15.1(vue@3.5.39(typescript@5.9.3))(zod@3.25.76)
@@ -86,7 +89,7 @@ importers:
         version: 0.562.0(vue@3.5.39(typescript@5.9.3))
       markstream-vue:
         specifier: 1.0.5-beta.0
-        version: 1.0.5-beta.0(katex@0.17.0)(mermaid@11.16.0)(stream-monaco@0.0.45(monaco-editor@0.55.1))(vue-i18n@11.4.6(vue@3.5.39(typescript@5.9.3)))(vue@3.5.39(typescript@5.9.3))
+        version: 1.0.5-beta.0(@terrastruct/d2@0.1.33)(katex@0.17.0)(mermaid@11.16.0)(stream-markdown@0.0.16(shiki@4.3.0)(vue@3.5.39(typescript@5.9.3)))(stream-monaco@0.0.45(monaco-editor@0.55.1))(vue-i18n@11.4.6(vue@3.5.39(typescript@5.9.3)))(vue@3.5.39(typescript@5.9.3))
       mermaid:
         specifier: ^11.16.0
         version: 11.16.0
@@ -105,6 +108,9 @@ importers:
       sortablejs:
         specifier: ^1.15.7
         version: 1.15.7
+      stream-markdown:
+        specifier: ^0.0.16
+        version: 0.0.16(shiki@4.3.0)(vue@3.5.39(typescript@5.9.3))
       stream-monaco:
         specifier: ^0.0.45
         version: 0.0.45(monaco-editor@0.55.1)
@@ -1346,6 +1352,9 @@ packages:
     resolution: {integrity: sha512-5IpTZf5US81z9CHaRm2imVC44WDU1V/pd8mN1OIvIerRmo6C179UN+vnzlO/dx9Fpt9X7Rjl7fyvolPhPgtfqg==}
     peerDependencies:
       vue: ^2.7.0 || ^3.0.0
+
+  '@terrastruct/d2@0.1.33':
+    resolution: {integrity: sha512-eK5hyfGIJFolC7sUsiKvWdY9xGFctTe3d+PSijo09IYDso8psztC+A4SammizXtlwYZpnnW0AtDjfBYauceSeA==}
 
   '@tybys/wasm-util@0.10.3':
     resolution: {integrity: sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==}
@@ -3232,6 +3241,20 @@ packages:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
 
+  shiki-stream@0.1.4:
+    resolution: {integrity: sha512-4pz6JGSDmVTTkPJ/ueixHkFAXY4ySCc+unvCaDZV7hqq/sdJZirRxgIXSuNSKgiFlGTgRR97sdu2R8K55sPsrw==}
+    peerDependencies:
+      react: ^19.0.0
+      solid-js: ^1.9.0
+      vue: ^3.2.0
+    peerDependenciesMeta:
+      react:
+        optional: true
+      solid-js:
+        optional: true
+      vue:
+        optional: true
+
   shiki@3.23.0:
     resolution: {integrity: sha512-55Dj73uq9ZXL5zyeRPzHQsK7Nbyt6Y10k5s7OjuFZGMhpp4r/rsLBH0o/0fstIzX1Lep9VxefWljK/SKCzygIA==}
 
@@ -3285,6 +3308,11 @@ packages:
 
   stream-markdown-parser@1.0.8:
     resolution: {integrity: sha512-+Oo9ik7BtMBxf+Krh19YA0jmk+TIUxfULU5qQpWHo3Z4SBX74/Qwt6lVHcUvEcUQcd1kV35VNmw1SYdhBY4aOA==}
+
+  stream-markdown@0.0.16:
+    resolution: {integrity: sha512-2WoOxlpc3N5RLc3zGuW+g/w76z6ketWBY0N1YzDYbXds1qw7zrUBv5PTQ3DOtpqgCjLuF3P2iCfjJTEqWGv0NQ==}
+    peerDependencies:
+      shiki: '>=3.23.0'
 
   stream-monaco@0.0.45:
     resolution: {integrity: sha512-irJdHfGGOfNUp+oYb/VybeyGa0GDajZH2JIt/rjL1OjH1uh3oS5+igIYgUXJcHMOsp3Pz01CP32eh+la7GvZ0g==}
@@ -4746,6 +4774,8 @@ snapshots:
     dependencies:
       '@tanstack/virtual-core': 3.17.2
       vue: 3.5.39(typescript@5.9.3)
+
+  '@terrastruct/d2@0.1.33': {}
 
   '@tybys/wasm-util@0.10.3':
     dependencies:
@@ -6350,7 +6380,7 @@ snapshots:
 
   markstream-core@1.0.3: {}
 
-  markstream-vue@1.0.5-beta.0(katex@0.17.0)(mermaid@11.16.0)(stream-monaco@0.0.45(monaco-editor@0.55.1))(vue-i18n@11.4.6(vue@3.5.39(typescript@5.9.3)))(vue@3.5.39(typescript@5.9.3)):
+  markstream-vue@1.0.5-beta.0(@terrastruct/d2@0.1.33)(katex@0.17.0)(mermaid@11.16.0)(stream-markdown@0.0.16(shiki@4.3.0)(vue@3.5.39(typescript@5.9.3)))(stream-monaco@0.0.45(monaco-editor@0.55.1))(vue-i18n@11.4.6(vue@3.5.39(typescript@5.9.3)))(vue@3.5.39(typescript@5.9.3)):
     dependencies:
       '@chenglou/pretext': 0.0.5
       '@floating-ui/dom': 1.7.6
@@ -6358,8 +6388,10 @@ snapshots:
       stream-markdown-parser: 1.0.8
       vue: 3.5.39(typescript@5.9.3)
     optionalDependencies:
+      '@terrastruct/d2': 0.1.33
       katex: 0.17.0
       mermaid: 11.16.0
+      stream-markdown: 0.0.16(shiki@4.3.0)(vue@3.5.39(typescript@5.9.3))
       stream-monaco: 0.0.45(monaco-editor@0.55.1)
       vue-i18n: 11.4.6(vue@3.5.39(typescript@5.9.3))
 
@@ -6845,6 +6877,12 @@ snapshots:
 
   shebang-regex@3.0.0: {}
 
+  shiki-stream@0.1.4(vue@3.5.39(typescript@5.9.3)):
+    dependencies:
+      '@shikijs/core': 3.23.0
+    optionalDependencies:
+      vue: 3.5.39(typescript@5.9.3)
+
   shiki@3.23.0:
     dependencies:
       '@shikijs/core': 3.23.0
@@ -6909,6 +6947,15 @@ snapshots:
       markdown-it-sup: 2.0.0
       markdown-it-task-checkbox: 1.0.6
       markdown-it-ts: 1.0.2
+
+  stream-markdown@0.0.16(shiki@4.3.0)(vue@3.5.39(typescript@5.9.3)):
+    dependencies:
+      shiki: 4.3.0
+      shiki-stream: 0.1.4(vue@3.5.39(typescript@5.9.3))
+    transitivePeerDependencies:
+      - react
+      - solid-js
+      - vue
 
   stream-monaco@0.0.45(monaco-editor@0.55.1):
     dependencies:
