@@ -156,8 +156,8 @@
     "subtitle": "Connect your GitHub account to start triage.",
     "title": "Sign in",
     "tokenPlaceholder": "Personal GitHub token",
-    "useOAuth": "Use OAuth",
-    "usePersonalToken": "Use personal GitHub token",
+    "useOAuth": "Login with GitHub",
+    "usePersonalToken": "Login with personal GitHub token",
     "waitingForAuthorization": "Waiting for authorization at"
   },
   "settings": {

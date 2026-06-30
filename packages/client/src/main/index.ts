@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, nativeTheme, shell } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import { registerAccountsIpc } from './accounts'
 import { registerActionsIpc } from './actions'
@@ -15,6 +15,16 @@ import { registerSearchIpc } from './search'
 
 configureDevRemoteDebugging()
 
+// Keep the native window background in sync with the active theme so no light
+// strip bleeds through behind the renderer (e.g. the hiddenInset titlebar inset
+// area) when the app is in dark mode.
+const LIGHT_BACKGROUND = '#f7f7f5'
+const DARK_BACKGROUND = '#0a0a0a'
+
+function resolveBackgroundColor(): string {
+  return nativeTheme.shouldUseDarkColors ? DARK_BACKGROUND : LIGHT_BACKGROUND
+}
+
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
     width: 1560,
@@ -22,7 +32,7 @@ function createWindow(): void {
     minWidth: 1040,
     minHeight: 680,
     title: 'Oh My GitHub',
-    backgroundColor: '#f7f7f5',
+    backgroundColor: resolveBackgroundColor(),
     titleBarStyle: 'hiddenInset',
     show: false,
     webPreferences: {
@@ -41,6 +51,14 @@ function createWindow(): void {
 
   mainWindow.on('enter-full-screen', sendFullscreenState)
   mainWindow.on('leave-full-screen', sendFullscreenState)
+
+  function syncBackgroundColor(): void {
+    if (mainWindow.isDestroyed()) return
+    mainWindow.setBackgroundColor(resolveBackgroundColor())
+  }
+
+  nativeTheme.on('updated', syncBackgroundColor)
+  mainWindow.on('closed', () => nativeTheme.off('updated', syncBackgroundColor))
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show()

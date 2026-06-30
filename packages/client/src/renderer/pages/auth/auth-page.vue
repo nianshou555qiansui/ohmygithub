@@ -127,8 +127,8 @@ function resolveErrorMessage(error: unknown): string {
 </script>
 
 <template>
-  <main class="grid min-h-full place-items-center bg-background px-6 py-12">
-    <Card class="w-full max-w-sm">
+  <main class="auth-page grid min-h-full place-items-center bg-background px-6 py-12">
+    <Card class="auth-card w-full max-w-sm">
       <CardContent class="grid gap-4">
         <div class="grid gap-2 text-center">
           <h1 class="select-none text-title font-semibold text-foreground">{{ t('auth.title') }}</h1>
@@ -219,3 +219,15 @@ function resolveErrorMessage(error: unknown): string {
     </Card>
   </main>
 </template>
+
+<style scoped>
+/* The window uses titleBarStyle: 'hiddenInset', so there is no native title bar
+   to drag. Make the empty login canvas draggable and keep the card interactive. */
+.auth-page {
+  -webkit-app-region: drag;
+}
+
+.auth-card {
+  -webkit-app-region: no-drag;
+}
+</style>
