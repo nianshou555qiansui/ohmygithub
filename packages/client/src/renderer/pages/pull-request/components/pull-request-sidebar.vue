@@ -54,6 +54,10 @@ import {
   useRepositoryLabelsQuery,
   useRepositoryMilestonesQuery,
 } from '../../../composables/github/use-issues'
+import {
+  canApplyMergeDialogOpenChange,
+  type PullRequestMergeDialogOpenChangeReason,
+} from './pull-request-merge-dialog-state'
 import { shouldShowPullRequestMergeActionIcon } from './pull-request-merge-button-state'
 import { createPullRequestMergeDraft } from './pull-request-merge-draft'
 
@@ -318,8 +322,12 @@ function openMergeDialog(): void {
   isMergeDialogOpen.value = true
 }
 
-function setMergeDialogOpen(isOpen: boolean): void {
-  if (isMerging.value && !isOpen) return
+function setMergeDialogOpen(isOpen: boolean, reason: PullRequestMergeDialogOpenChangeReason = 'user'): void {
+  if (!canApplyMergeDialogOpenChange({
+    isMerging: isMerging.value,
+    nextOpen: isOpen,
+    reason,
+  })) return
 
   isMergeDialogOpen.value = isOpen
 
@@ -352,7 +360,7 @@ async function confirmMerge(): Promise<void> {
       commitMessage,
     })
     bypassRules.value = false
-    setMergeDialogOpen(false)
+    setMergeDialogOpen(false, 'merge-success')
     emit('refetch')
   } catch {
     mergeDialogError.value = canBypassRules.value && bypassRules.value
