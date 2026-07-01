@@ -95,10 +95,9 @@ const timestamp = computed(() => formatConversationDate(props.notification.updat
     </div>
 
     <div class="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-      <Tooltip>
+      <Tooltip v-if="notification.unread">
         <TooltipTrigger as-child>
           <Button
-            v-if="notification.unread"
             variant="ghost"
             size="icon"
             @click.stop="emit('mark-read', notification)"
