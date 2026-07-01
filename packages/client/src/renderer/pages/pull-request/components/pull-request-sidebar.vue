@@ -54,6 +54,7 @@ import {
   useRepositoryLabelsQuery,
   useRepositoryMilestonesQuery,
 } from '../../../composables/github/use-issues'
+import { shouldShowPullRequestMergeActionIcon } from './pull-request-merge-button-state'
 import { createPullRequestMergeDraft } from './pull-request-merge-draft'
 
 const props = defineProps<{
@@ -229,6 +230,9 @@ const mergeDialogConfirmLabel = computed(() => {
     ? t('pullRequest.merge.confirmBypassButton', { method: methodLabel })
     : t('pullRequest.merge.confirmButton', { method: methodLabel })
 })
+const showMergeActionIcon = computed(() =>
+  shouldShowPullRequestMergeActionIcon({ isMerging: isMerging.value })
+)
 const diffItems = computed<SummaryItem[]>(() => [
   {
     id: 'files',
@@ -459,7 +463,10 @@ function isDateItem(value: DateItem | null): value is DateItem {
               :variant="canSubmitMerge ? 'primary' : 'outline'"
               @click="openMergeDialog"
             >
-              <GitMerge class="size-3.5" />
+              <GitMerge
+                v-if="showMergeActionIcon"
+                class="size-3.5"
+              />
               <span class="truncate">{{ mergeButtonLabel }}</span>
             </Button>
 
