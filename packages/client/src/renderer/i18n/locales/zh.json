@@ -176,7 +176,7 @@
       "codeFontSize": "代码字号",
       "codeFontSizeDescription": "应用于编辑器和渲染后的代码块。",
       "codeHighlight": "代码高亮",
-      "codeHighlightDescription": "分别选择浅色和深色模式下的 Shiki 主题。",
+      "codeHighlightDescription": "代码主题跟随所选配色方案。",
       "colorScheme": "配色方案",
       "colorSchemes": {
         "amber": "琥珀",
@@ -202,10 +202,6 @@
         "forest": "森林",
         "neutral": "中性"
       },
-      "shikiThemeDark": "深色主题",
-      "shikiThemeEmpty": "未找到主题。",
-      "shikiThemeLight": "浅色主题",
-      "shikiThemeSearch": "搜索主题...",
       "theme": "主题",
       "typography": "字体",
       "uiFontFamily": "界面字体",

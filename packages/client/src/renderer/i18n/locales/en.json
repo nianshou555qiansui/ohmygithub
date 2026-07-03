@@ -176,7 +176,7 @@
       "codeFontSize": "Code font size",
       "codeFontSizeDescription": "Applies to editors and rendered code blocks.",
       "codeHighlight": "Code highlighting",
-      "codeHighlightDescription": "Choose separate Shiki themes for light and dark mode.",
+      "codeHighlightDescription": "Code themes follow the selected color scheme.",
       "colorScheme": "Color scheme",
       "colorSchemes": {
         "amber": "Amber",
@@ -202,10 +202,6 @@
         "forest": "Forest",
         "neutral": "Neutral"
       },
-      "shikiThemeDark": "Dark theme",
-      "shikiThemeEmpty": "No themes found.",
-      "shikiThemeLight": "Light theme",
-      "shikiThemeSearch": "Search themes...",
       "theme": "Theme",
       "typography": "Typography",
       "uiFontFamily": "Interface font",

@@ -24,8 +24,6 @@ export interface LocalConfig {
     codeFontSizePx: number
     uiFontFamily: string
     codeFontFamily: string
-    shikiThemeLight: string
-    shikiThemeDark: string
     mermaidTheme: 'auto' | 'default' | 'dark' | 'forest' | 'neutral'
     keyboardShortcuts: Record<string, KeyboardShortcutOverride>
   }
@@ -45,8 +43,6 @@ export type LocalConfigPatch = Partial<{
 const configPath = join(homedir(), '.oh-my-github', 'config.json')
 const DEFAULT_UI_FONT_SIZE_PX = 16
 const DEFAULT_CODE_FONT_SIZE_PX = 13
-const DEFAULT_SHIKI_THEME_LIGHT = 'github-light'
-const DEFAULT_SHIKI_THEME_DARK = 'github-dark'
 const MAX_FONT_FAMILY_LENGTH = 256
 const MAX_KEYBOARD_SHORTCUT_ID_LENGTH = 128
 const MAX_KEYBOARD_SHORTCUT_ACCELERATOR_LENGTH = 80
@@ -131,8 +127,6 @@ function normalizeConfig(config: Partial<LocalConfig>): LocalConfig {
       codeFontSizePx: normalizePx(config.ui?.codeFontSizePx, DEFAULT_CODE_FONT_SIZE_PX, 11, 20),
       uiFontFamily: normalizeFontFamily(config.ui?.uiFontFamily),
       codeFontFamily: normalizeFontFamily(config.ui?.codeFontFamily),
-      shikiThemeLight: normalizeNonEmptyString(config.ui?.shikiThemeLight, DEFAULT_SHIKI_THEME_LIGHT),
-      shikiThemeDark: normalizeNonEmptyString(config.ui?.shikiThemeDark, DEFAULT_SHIKI_THEME_DARK),
       mermaidTheme: normalizeMermaidTheme(config.ui?.mermaidTheme),
       keyboardShortcuts: normalizeKeyboardShortcuts(config.ui?.keyboardShortcuts)
     }
@@ -156,8 +150,6 @@ function defaultConfig(): LocalConfig {
       codeFontSizePx: DEFAULT_CODE_FONT_SIZE_PX,
       uiFontFamily: '',
       codeFontFamily: '',
-      shikiThemeLight: DEFAULT_SHIKI_THEME_LIGHT,
-      shikiThemeDark: DEFAULT_SHIKI_THEME_DARK,
       mermaidTheme: 'auto',
       keyboardShortcuts: {}
     }
@@ -229,16 +221,6 @@ function normalizeFontFamily(value: unknown): string {
   }
 
   return normalized
-}
-
-function normalizeNonEmptyString(value: unknown, fallback: string): string {
-  if (typeof value !== 'string') {
-    return fallback
-  }
-
-  const normalized = value.trim()
-
-  return normalized ? normalized : fallback
 }
 
 function normalizeKeyboardShortcuts(value: unknown): Record<string, KeyboardShortcutOverride> {

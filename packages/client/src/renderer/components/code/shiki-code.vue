@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
-import type { BundledTheme } from 'shiki'
+import type { ThemeRegistrationRaw } from 'shiki'
+import { useCodeTheme } from './code-theme'
 import { parseDiff } from './parse-diff'
 import { useShikiHighlighter } from './use-shiki-highlighter'
 
@@ -11,24 +12,28 @@ const props = withDefaults(defineProps<{
   filename?: string
   padded?: boolean
   showLineNumbers?: boolean
-  theme?: BundledTheme
   themedBackground?: boolean
-  themes?: {
-    light: BundledTheme
-    dark: BundledTheme
-  }
+  /** Force a single theme instead of the scheme-bound light/dark pair. */
+  theme?: ThemeRegistrationRaw
 }>(), {
   diff: false,
   filename: undefined,
   language: undefined,
   padded: false,
   showLineNumbers: true,
-  theme: undefined,
   themedBackground: false,
-  themes: undefined
+  theme: undefined
 })
 
 const shiki = useShikiHighlighter()
+const { themes } = useCodeTheme()
+
+// Shiki dual-theme output plus the `.dark .shiki span { color: var(--shiki-dark) }`
+// rule in the UI stylesheet means single-theme rendering loses its colors in dark
+// mode. To force one theme regardless of app mode, render it on both sides.
+const effectiveThemes = computed(() =>
+  props.theme ? { light: props.theme, dark: props.theme } : themes.value
+)
 const lineNumbersEnabled = computed(() => props.showLineNumbers && !props.diff)
 const fallbackHtml = computed(() => props.code.split('\n').map((line) => {
   return `<span class="line">${escapeHtml(line)}</span>`
@@ -40,11 +45,10 @@ watch(
     props.diff,
     props.language,
     props.filename,
-    props.theme,
-    props.themes?.light,
-    props.themes?.dark
+    effectiveThemes.value.light.name,
+    effectiveThemes.value.dark.name
   ] as const,
-  ([code, diff, language, filename, theme]) => {
+  ([code, diff, language, filename]) => {
     if (!code) {
       shiki.html.value = ''
       return
@@ -56,8 +60,7 @@ watch(
       void shiki.highlight(lines.map((line) => line.content).join('\n'), {
         filename,
         language,
-        theme,
-        themes: props.themes,
+        themes: effectiveThemes.value,
         diffLines: lines
       })
 
@@ -67,8 +70,7 @@ watch(
     void shiki.highlight(code, {
       filename,
       language,
-      theme,
-      themes: props.themes
+      themes: effectiveThemes.value
     })
   },
   { immediate: true }

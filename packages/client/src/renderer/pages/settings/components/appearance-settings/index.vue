@@ -13,12 +13,11 @@ import {
   DEFAULT_CODE_FONT_FAMILY,
   DEFAULT_UI_FONT_FAMILY,
   MERMAID_THEMES,
-  listBundledShikiThemes,
   type ColorSchemeId,
   type MermaidTheme,
   type ThemePreference,
   useSettingsStore,
-} from '../../../../stores/settings'
+} from '@/stores/settings'
 import CodeThemePreview from './code-theme-preview.vue'
 import ColorSchemeSelect from './color-scheme-select.vue'
 import FontFamilyInput from './font-family-input.vue'
@@ -27,7 +26,6 @@ import MermaidThemePreview from './mermaid-theme-preview.vue'
 import SettingsBlock from './settings-block.vue'
 import SettingsRow from './settings-row.vue'
 import SettingsSection from './settings-section.vue'
-import ShikiThemePicker from './shiki-theme-picker.vue'
 import ThemeModeControl from './theme-mode-control.vue'
 
 const { t } = useI18n()
@@ -39,28 +37,10 @@ const {
   isDark,
   locale,
   mermaidTheme,
-  shikiThemeDark,
-  shikiThemeLight,
   theme,
   uiFontFamily,
   uiFontSizePx,
 } = storeToRefs(settingsStore)
-
-const shikiThemes = listBundledShikiThemes()
-const lightShikiThemeOptions = computed(() =>
-  shikiThemes.filter((theme) => theme.type === 'light')
-)
-const darkShikiThemeOptions = computed(() =>
-  shikiThemes.filter((theme) => theme.type === 'dark')
-)
-const shikiThemeLightSelection = computed<string>({
-  get: () => shikiThemeLight.value,
-  set: (value) => settingsStore.setShikiTheme('light', value)
-})
-const shikiThemeDarkSelection = computed<string>({
-  get: () => shikiThemeDark.value,
-  set: (value) => settingsStore.setShikiTheme('dark', value)
-})
 
 const mermaidThemeLabels = computed<Record<MermaidTheme, string>>(() => ({
   auto: t('settings.appearance.mermaidThemes.auto'),
@@ -179,30 +159,7 @@ function setColorScheme(value: ColorSchemeId): void {
         :label="t('settings.appearance.codeHighlight')"
         :description="t('settings.appearance.codeHighlightDescription')"
       >
-        <div class="grid gap-3 sm:grid-cols-2">
-          <div class="space-y-2">
-            <ShikiThemePicker
-              v-model="shikiThemeLightSelection"
-              :control-label="t('settings.appearance.shikiThemeLight')"
-              :empty-text="t('settings.appearance.shikiThemeEmpty')"
-              :options="lightShikiThemeOptions"
-              :placeholder="t('settings.appearance.shikiThemeLight')"
-              :search-placeholder="t('settings.appearance.shikiThemeSearch')"
-            />
-            <CodeThemePreview :theme="shikiThemeLight" />
-          </div>
-          <div class="space-y-2">
-            <ShikiThemePicker
-              v-model="shikiThemeDarkSelection"
-              :control-label="t('settings.appearance.shikiThemeDark')"
-              :empty-text="t('settings.appearance.shikiThemeEmpty')"
-              :options="darkShikiThemeOptions"
-              :placeholder="t('settings.appearance.shikiThemeDark')"
-              :search-placeholder="t('settings.appearance.shikiThemeSearch')"
-            />
-            <CodeThemePreview :theme="shikiThemeDark" />
-          </div>
-        </div>
+        <CodeThemePreview />
       </SettingsBlock>
     </SettingsSection>
 

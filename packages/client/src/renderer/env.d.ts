@@ -21,8 +21,6 @@ type LocalConfig = {
     codeFontSizePx: number
     uiFontFamily: string
     codeFontFamily: string
-    shikiThemeLight: string
-    shikiThemeDark: string
     mermaidTheme: 'auto' | 'default' | 'dark' | 'forest' | 'neutral'
     keyboardShortcuts: Record<string, KeyboardShortcutOverride>
   }

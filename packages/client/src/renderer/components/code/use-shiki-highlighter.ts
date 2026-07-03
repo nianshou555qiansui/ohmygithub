@@ -1,19 +1,26 @@
 import { ref } from 'vue'
-import type { BundledLanguage, BundledTheme, HighlighterGeneric, ShikiTransformer } from 'shiki'
-import { useSettingsStore } from '../../stores/settings'
+import type {
+  BundledLanguage,
+  BundledTheme,
+  HighlighterGeneric,
+  ShikiTransformer,
+  ThemeRegistrationRaw
+} from 'shiki'
+import { useSettingsStore } from '@/stores/settings'
 import { normalizeCodeLanguage, resolveCodeLanguage } from './code-language'
+import { getSchemeCodeThemes } from './scheme-code-themes'
 import type { DiffLine } from './parse-diff'
 
 type Highlighter = HighlighterGeneric<BundledLanguage, BundledTheme>
 export type ShikiThemePair = {
-  light: BundledTheme
-  dark: BundledTheme
+  light: ThemeRegistrationRaw
+  dark: ThemeRegistrationRaw
 }
 
 export type ShikiHighlightOptions = {
   language?: string
   filename?: string
-  theme?: BundledTheme
+  theme?: ThemeRegistrationRaw
   themes?: ShikiThemePair
   diffLines?: DiffLine[]
 }
@@ -52,14 +59,15 @@ async function ensureLanguage(highlighter: Highlighter, language: string): Promi
   }
 }
 
-async function ensureTheme(highlighter: Highlighter, theme: string): Promise<void> {
-  if (loadedThemes.has(theme)) return
+async function ensureTheme(highlighter: Highlighter, theme: ThemeRegistrationRaw): Promise<void> {
+  const name = theme.name ?? ''
+  if (loadedThemes.has(name)) return
 
   try {
-    await highlighter.loadTheme(theme as BundledTheme)
-    loadedThemes.add(theme)
+    await highlighter.loadTheme(theme)
+    loadedThemes.add(name)
   } catch {
-    loadedThemes.add(theme)
+    loadedThemes.add(name)
   }
 }
 
@@ -124,10 +132,7 @@ export function useShikiHighlighter() {
     try {
       const highlighter = await getHighlighter()
       const language = await ensureLanguage(highlighter, resolveCodeLanguage(options))
-      const themes = options.themes ?? {
-        light: settings.codeThemeLight as BundledTheme,
-        dark: settings.codeThemeDark as BundledTheme
-      }
+      const themes = options.themes ?? getSchemeCodeThemes(settings.colorScheme)
       const transformers = options.diffLines
         ? [createDiffTransformer(options.diffLines)]
         : undefined

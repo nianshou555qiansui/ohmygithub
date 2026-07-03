@@ -1,23 +1,26 @@
 import { computed } from "vue";
-import { useSettingsStore } from "../../stores/settings";
+import type { ThemeRegistrationRaw } from "shiki";
+import { useSettingsStore } from "@/stores/settings";
+import { getSchemeCodeThemes } from "./scheme-code-themes";
 
 export interface CodeThemePair {
-  light: string;
-  dark: string;
+  light: ThemeRegistrationRaw;
+  dark: ThemeRegistrationRaw;
 }
 
 export function useCodeTheme() {
   const settings = useSettingsStore();
 
-  const themes = computed<CodeThemePair>(() => ({
-    light: settings.codeThemeLight,
-    dark: settings.codeThemeDark,
-  }));
+  const themes = computed<CodeThemePair>(() =>
+    getSchemeCodeThemes(settings.colorScheme)
+  );
 
-  const activeTheme = computed(() => settings.activeCodeTheme);
+  const activeThemeName = computed(
+    () => (settings.isDark ? themes.value.dark.name : themes.value.light.name) as string
+  );
 
   return {
-    activeTheme,
+    activeThemeName,
     isDark: settings.isDark,
     themes,
   };

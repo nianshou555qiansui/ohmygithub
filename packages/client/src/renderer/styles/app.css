@@ -84,13 +84,11 @@ html:not([data-focus-ring-modality="keyboard"])
   outline: none !important;
 }
 
-.rich-content-code:not([data-themed-background="true"]) .shiki,
-.rich-content-code:not([data-themed-background="true"]) .shiki code {
+/* Code themes are bound to the color scheme and always render on a transparent
+   background so code blends into the scheme-tinted panel behind it. */
+.rich-content-code .shiki,
+.rich-content-code .shiki code {
   background: transparent !important;
-}
-
-.dark .rich-content-code[data-themed-background="true"] .shiki {
-  background-color: var(--shiki-dark-bg) !important;
 }
 
 .rich-content-code .shiki {

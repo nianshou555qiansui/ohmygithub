@@ -1,21 +1,11 @@
 import { computed, ref, watch } from 'vue'
 import { useColorMode } from '@vueuse/core'
 import { defineStore } from 'pinia'
-import type { BundledTheme } from 'shiki'
-import { bundledThemesInfo } from 'shiki/themes'
-import { i18n, type SupportedLocale } from '../i18n'
+import { i18n, type SupportedLocale } from '@/i18n'
 
 export type ThemePreference = 'auto' | 'light' | 'dark'
 export type ColorSchemeId = 'default' | 'ocean' | 'forest' | 'rose' | 'amber'
 export type MermaidTheme = 'auto' | 'default' | 'dark' | 'forest' | 'neutral'
-export type CodeThemePreference = string
-export type ShikiThemeVariant = 'light' | 'dark'
-
-export interface BundledShikiTheme {
-  id: BundledTheme
-  displayName: string
-  type: ShikiThemeVariant
-}
 
 export interface ColorSchemeOption {
   id: ColorSchemeId
@@ -24,12 +14,10 @@ export interface ColorSchemeOption {
   darkSwatches: string[]
 }
 
-export const DEFAULT_UI_FONT_FAMILY = 'system-ui, sans-serif'
-export const DEFAULT_CODE_FONT_FAMILY = 'ui-monospace, monospace'
+export const DEFAULT_UI_FONT_FAMILY = 'MiSans, sans-serif'
+export const DEFAULT_CODE_FONT_FAMILY = 'Maple Mono, ui-monospace, monospace'
 export const DEFAULT_UI_FONT_SIZE_PX = 16
 export const DEFAULT_CODE_FONT_SIZE_PX = 13
-export const DEFAULT_CODE_THEME_LIGHT: BundledTheme = 'github-light'
-export const DEFAULT_CODE_THEME_DARK: BundledTheme = 'github-dark'
 export const DEFAULT_MERMAID_THEME: MermaidTheme = 'auto'
 export const MERMAID_THEMES: MermaidTheme[] = ['auto', 'default', 'dark', 'forest', 'neutral']
 
@@ -66,13 +54,6 @@ export const colorSchemes: ColorSchemeOption[] = [
   }
 ]
 
-const bundledThemesById = new Map<string, BundledShikiTheme>(
-  bundledThemesInfo.map((info) => [
-    info.id,
-    { id: info.id as BundledTheme, displayName: info.displayName, type: info.type }
-  ])
-)
-
 const colorSchemeIds = new Set<ColorSchemeId>(colorSchemes.map((scheme) => scheme.id))
 const CSS_GENERIC_FONT_FAMILIES = new Set([
   'serif',
@@ -89,19 +70,6 @@ const CSS_GENERIC_FONT_FAMILIES = new Set([
   'math',
   'fangsong'
 ])
-
-export function listBundledShikiThemes(): BundledShikiTheme[] {
-  return Array.from(bundledThemesById.values())
-}
-
-export function normalizeShikiTheme(value: unknown, variant: ShikiThemeVariant): BundledTheme {
-  if (typeof value === 'string') {
-    const info = bundledThemesById.get(value)
-    if (info && info.type === variant) return info.id
-  }
-
-  return variant === 'light' ? DEFAULT_CODE_THEME_LIGHT : DEFAULT_CODE_THEME_DARK
-}
 
 export function normalizeUiFontSizePx(value: unknown): number {
   return normalizePx(value, DEFAULT_UI_FONT_SIZE_PX, 12, 20)
@@ -281,8 +249,6 @@ function normalizeConfigUi(ui: Partial<LocalConfig['ui']> | undefined): LocalCon
     codeFontSizePx: normalizeCodeFontSizePx(ui?.codeFontSizePx),
     uiFontFamily: normalizeStoredFontFamilyInput(ui?.uiFontFamily, DEFAULT_UI_FONT_FAMILY),
     codeFontFamily: normalizeStoredFontFamilyInput(ui?.codeFontFamily, DEFAULT_CODE_FONT_FAMILY),
-    shikiThemeLight: normalizeShikiTheme(ui?.shikiThemeLight, 'light'),
-    shikiThemeDark: normalizeShikiTheme(ui?.shikiThemeDark, 'dark'),
     mermaidTheme: normalizeMermaidTheme(ui?.mermaidTheme),
     keyboardShortcuts: normalizeKeyboardShortcuts(ui?.keyboardShortcuts)
   }
@@ -359,8 +325,6 @@ export const useSettingsStore = defineStore('settings', () => {
   const codeFontSizePx = ref(defaultUi.codeFontSizePx)
   const uiFontFamily = ref(defaultUi.uiFontFamily)
   const codeFontFamily = ref(defaultUi.codeFontFamily)
-  const shikiThemeLight = ref<BundledTheme>(defaultUi.shikiThemeLight as BundledTheme)
-  const shikiThemeDark = ref<BundledTheme>(defaultUi.shikiThemeDark as BundledTheme)
   const mermaidTheme = ref<MermaidTheme>(defaultUi.mermaidTheme)
   const keyboardShortcuts = ref<LocalConfig['ui']['keyboardShortcuts']>(defaultUi.keyboardShortcuts)
   const colorMode = useColorMode<ThemePreference>({
@@ -376,14 +340,6 @@ export const useSettingsStore = defineStore('settings', () => {
 
   const resolvedColorMode = computed(() => colorMode.state.value)
   const isDark = computed(() => resolvedColorMode.value === 'dark')
-  const activeCodeTheme = computed(() => (isDark.value ? shikiThemeDark.value : shikiThemeLight.value))
-  const codeThemeLight = computed(() => shikiThemeLight.value)
-  const codeThemeDark = computed(() => shikiThemeDark.value)
-  const codeThemes = computed(() => ({
-    light: shikiThemeLight.value,
-    dark: shikiThemeDark.value
-  }))
-  const shikiThemes = codeThemes
   const uiFontStack = computed(() => cssFontFamilyDeclaration(uiFontFamily.value, DEFAULT_UI_FONT_FAMILY))
   const codeFontStack = computed(() => cssFontFamilyDeclaration(codeFontFamily.value, DEFAULT_CODE_FONT_FAMILY))
 
@@ -396,8 +352,6 @@ export const useSettingsStore = defineStore('settings', () => {
       codeFontSizePx: codeFontSizePx.value,
       uiFontFamily: uiFontFamily.value,
       codeFontFamily: codeFontFamily.value,
-      shikiThemeLight: shikiThemeLight.value,
-      shikiThemeDark: shikiThemeDark.value,
       mermaidTheme: mermaidTheme.value,
       keyboardShortcuts: keyboardShortcuts.value
     })
@@ -413,8 +367,6 @@ export const useSettingsStore = defineStore('settings', () => {
     codeFontSizePx.value = normalized.codeFontSizePx
     uiFontFamily.value = normalized.uiFontFamily
     codeFontFamily.value = normalized.codeFontFamily
-    shikiThemeLight.value = normalized.shikiThemeLight as BundledTheme
-    shikiThemeDark.value = normalized.shikiThemeDark as BundledTheme
     mermaidTheme.value = normalized.mermaidTheme
     keyboardShortcuts.value = normalized.keyboardShortcuts
   }
@@ -461,8 +413,6 @@ export const useSettingsStore = defineStore('settings', () => {
       codeFontSizePx: ui.codeFontSizePx,
       uiFontFamily: ui.uiFontFamily,
       codeFontFamily: ui.codeFontFamily,
-      shikiThemeLight: ui.shikiThemeLight,
-      shikiThemeDark: ui.shikiThemeDark,
       mermaidTheme: ui.mermaidTheme
     }
   }
@@ -497,20 +447,6 @@ export const useSettingsStore = defineStore('settings', () => {
 
   function setCodeFontFamily(value: string): void {
     updateUi({ codeFontFamily: normalizeStoredFontFamilyInput(value, DEFAULT_CODE_FONT_FAMILY) })
-  }
-
-  function setCodeThemes(value: { light?: CodeThemePreference; dark?: CodeThemePreference }): void {
-    updateUi({
-      shikiThemeLight: value.light ? normalizeShikiTheme(value.light, 'light') : shikiThemeLight.value,
-      shikiThemeDark: value.dark ? normalizeShikiTheme(value.dark, 'dark') : shikiThemeDark.value
-    })
-  }
-
-  function setShikiTheme(variant: ShikiThemeVariant, value: CodeThemePreference): void {
-    updateUi({
-      shikiThemeLight: variant === 'light' ? normalizeShikiTheme(value, 'light') : shikiThemeLight.value,
-      shikiThemeDark: variant === 'dark' ? normalizeShikiTheme(value, 'dark') : shikiThemeDark.value
-    })
   }
 
   function setMermaidTheme(value: MermaidTheme): void {
@@ -559,13 +495,9 @@ export const useSettingsStore = defineStore('settings', () => {
   )
 
   return {
-    activeCodeTheme,
     codeFontFamily,
     codeFontSizePx,
     codeFontStack,
-    codeThemeDark,
-    codeThemeLight,
-    codeThemes,
     colorMode,
     colorScheme,
     configPath,
@@ -577,18 +509,13 @@ export const useSettingsStore = defineStore('settings', () => {
     resolvedColorMode,
     setCodeFontFamily,
     setCodeFontSizePx,
-    setCodeThemes,
     setColorScheme,
     setLanguage,
     setLocale,
     setMermaidTheme,
-    setShikiTheme,
     setTheme,
     setUiFontFamily,
     setUiFontSizePx,
-    shikiThemeDark,
-    shikiThemeLight,
-    shikiThemes,
     theme,
     uiFontFamily,
     uiFontSizePx,
