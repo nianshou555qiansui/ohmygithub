@@ -2,6 +2,7 @@
 appId: app.oh-my-github
 productName: Oh My GitHub
 copyright: Copyright © 2026 Oh My GitHub
+icon: ../../assets/icon.svg
 
 directories:
   output: release/${version}

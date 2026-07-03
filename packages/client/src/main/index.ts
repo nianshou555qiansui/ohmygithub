@@ -1,5 +1,5 @@
-import { join } from 'node:path'
-import { app, BrowserWindow, ipcMain, nativeTheme, shell } from 'electron'
+import { join, resolve } from 'node:path'
+import { app, BrowserWindow, ipcMain, nativeImage, nativeTheme, shell, type NativeImage } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import { registerAccountsIpc } from './accounts'
 import { registerActionsIpc } from './actions'
@@ -21,18 +21,36 @@ configureDevRemoteDebugging()
 // area) when the app is in dark mode.
 const LIGHT_BACKGROUND = '#f7f7f5'
 const DARK_BACKGROUND = '#0a0a0a'
+const DEV_APP_ICON = resolve(__dirname, '../../../../assets/icon.png')
 
 function resolveBackgroundColor(): string {
   return nativeTheme.shouldUseDarkColors ? DARK_BACKGROUND : LIGHT_BACKGROUND
 }
 
+function configureDevelopmentAppIcon(): void {
+  if (!is.dev || process.platform !== 'darwin') return
+  const icon = loadDevelopmentAppIcon()
+  if (!icon) return
+  app.dock?.setIcon(icon)
+}
+
+function loadDevelopmentAppIcon(): NativeImage | undefined {
+  if (!is.dev) return undefined
+
+  const icon = nativeImage.createFromPath(DEV_APP_ICON)
+  return icon.isEmpty() ? undefined : icon
+}
+
 function createWindow(): void {
+  const icon = loadDevelopmentAppIcon()
+
   const mainWindow = new BrowserWindow({
     width: 1560,
     height: 940,
     minWidth: 1040,
     minHeight: 680,
     title: 'Oh My GitHub',
+    icon,
     backgroundColor: resolveBackgroundColor(),
     titleBarStyle: 'hiddenInset',
     show: false,
@@ -89,6 +107,7 @@ function registerWindowIpc(): void {
 
 void app.whenReady().then(() => {
   app.setAppUserModelId('dev.oh-my-github.client')
+  configureDevelopmentAppIcon()
   registerAccountsIpc()
   registerActionsIpc()
   registerAuthIpc()
