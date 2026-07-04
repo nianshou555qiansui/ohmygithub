@@ -2366,6 +2366,7 @@ function createMockRepositoryOverview(options: RepositoryOptions): GitHubReposit
     isFork: options.repo.includes('fork'),
     isArchived: false,
     isTemplate: options.repo.includes('template'),
+    viewerCanAdminister: true,
     defaultBranch: 'main',
     primaryLanguage: 'TypeScript',
     languages: [

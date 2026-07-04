@@ -79,6 +79,7 @@ interface RepositoryResponse {
   fork?: boolean
   archived?: boolean
   is_template?: boolean
+  permissions?: { admin?: boolean } | null
   default_branch?: string | null
   language?: string | null
   topics?: string[]
@@ -486,6 +487,7 @@ export class RepositoriesApi {
       isFork: Boolean(repository.fork),
       isArchived: Boolean(repository.archived),
       isTemplate: Boolean(repository.is_template),
+      viewerCanAdminister: Boolean(repository.permissions?.admin),
       defaultBranch: repository.default_branch ?? null,
       primaryLanguage: repository.language ?? languages[0]?.name ?? null,
       languages,

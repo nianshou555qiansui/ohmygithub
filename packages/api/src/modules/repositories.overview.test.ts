@@ -39,6 +39,17 @@ describe('RepositoriesApi overview', () => {
     expect(overview.counts.openIssues).toBe(5)
     expect(overview.counts.openPullRequests).toBe(4)
   })
+
+  it('reports whether the viewer can administer the repository', async () => {
+    const { api } = createApi()
+
+    const overview = await api.getOverview({
+      owner: 'octo-org',
+      repo: 'hello-world',
+    })
+
+    expect(overview.viewerCanAdminister).toBe(true)
+  })
 })
 
 function createApi() {
@@ -58,6 +69,7 @@ function createApi() {
           archived: false,
           is_template: false,
           default_branch: 'main',
+          permissions: { admin: true, push: true, pull: true },
           language: 'TypeScript',
           license: null,
           stargazers_count: 10,
