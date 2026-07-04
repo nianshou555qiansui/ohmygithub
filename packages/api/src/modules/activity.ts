@@ -16,17 +16,17 @@ export type GitHubFeedEventPayload =
   | { kind: 'fork'; forkFullName: string | null }
   | { kind: 'create'; refType: 'repository' | 'branch' | 'tag'; ref: string | null }
   | { kind: 'delete'; refType: 'branch' | 'tag'; ref: string }
-  | { kind: 'push'; branch: string; commitCount: number }
-  | { kind: 'release'; tagName: string; releaseName: string | null }
+  | { kind: 'push'; branch: string; commitCount: number; commitMessages: string[] }
+  | { kind: 'release'; tagName: string; releaseName: string | null; excerpt: string | null }
   | { kind: 'public' }
   | { kind: 'member'; memberLogin: string | null }
-  | { kind: 'issue'; action: string; number: number; title: string }
-  | { kind: 'issue-comment'; number: number | null; title: string; isPullRequest: boolean }
-  | { kind: 'pull-request'; action: string; number: number; title: string; merged: boolean }
-  | { kind: 'pull-request-review'; number: number | null; title: string }
-  | { kind: 'pull-request-review-comment'; number: number | null; title: string }
-  | { kind: 'commit-comment'; commitSha: string | null }
-  | { kind: 'discussion'; title: string | null }
+  | { kind: 'issue'; action: string; number: number; title: string; excerpt: string | null }
+  | { kind: 'issue-comment'; number: number | null; title: string; isPullRequest: boolean; excerpt: string | null }
+  | { kind: 'pull-request'; action: string; number: number; title: string; merged: boolean; excerpt: string | null }
+  | { kind: 'pull-request-review'; number: number | null; title: string; excerpt: string | null }
+  | { kind: 'pull-request-review-comment'; number: number | null; title: string; excerpt: string | null }
+  | { kind: 'commit-comment'; commitSha: string | null; excerpt: string | null }
+  | { kind: 'discussion'; title: string | null; excerpt: string | null }
   | { kind: 'wiki'; pageCount: number }
   | { kind: 'sponsorship' }
   | { kind: 'unknown'; type: string }
@@ -44,6 +44,14 @@ export interface GitHubFeedEventPage {
   events: GitHubFeedEvent[]
   page: number
   hasMore: boolean
+}
+
+export interface GitHubFeedRepoCard {
+  fullName: string
+  description: string | null
+  stars: number
+  language: string | null
+  languageColor: string | null
 }
 
 // received_events 上限 300 条（30 天），per_page=100 时最多 3 页
@@ -76,6 +84,64 @@ export class ActivityApi {
       hasMore: hasNextPage(response.headers.link) && page < MAX_FEED_PAGE,
     }
   }
+
+  async getRepositoryCards(fullNames: string[]): Promise<Record<string, GitHubFeedRepoCard | null>> {
+    const result: Record<string, GitHubFeedRepoCard | null> = {}
+    const valid = [...new Set(fullNames)].filter(isValidRepoFullName)
+
+    for (let start = 0; start < valid.length; start += REPO_CARDS_CHUNK_SIZE) {
+      const chunk = valid.slice(start, start + REPO_CARDS_CHUNK_SIZE)
+      const data = await this.fetchRepoCardsChunk(chunk)
+
+      chunk.forEach((fullName, index) => {
+        const node = data[`repo${index}`]
+        result[fullName] = node
+          ? {
+              fullName: node.nameWithOwner,
+              description: node.description ?? null,
+              stars: node.stargazerCount,
+              language: node.primaryLanguage?.name ?? null,
+              languageColor: node.primaryLanguage?.color ?? null,
+            }
+          : null
+      })
+    }
+
+    return result
+  }
+
+  private async fetchRepoCardsChunk(chunk: string[]): Promise<Record<string, RawRepoCardNode | null>> {
+    try {
+      return await this.octokit.graphql<Record<string, RawRepoCardNode | null>>(buildRepoCardsQuery(chunk))
+    } catch (error) {
+      // 部分仓库被删/转私有时 GraphQL 抛部分错误，但 data 里仍带可用节点
+      const partial = (error as { data?: Record<string, RawRepoCardNode | null> }).data
+      if (partial) return partial
+      throw error
+    }
+  }
+}
+
+const REPO_CARDS_CHUNK_SIZE = 50
+
+interface RawRepoCardNode {
+  nameWithOwner: string
+  description?: string | null
+  stargazerCount: number
+  primaryLanguage?: { name: string; color?: string | null } | null
+}
+
+export function isValidRepoFullName(fullName: string): boolean {
+  return /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(fullName)
+}
+
+export function buildRepoCardsQuery(fullNames: string[]): string {
+  const fields = fullNames.map((fullName, index) => {
+    const [owner, name] = fullName.split('/')
+    return `  repo${index}: repository(owner: "${owner}", name: "${name}") { nameWithOwner description stargazerCount primaryLanguage { name color } }`
+  })
+
+  return `query {\n${fields.join('\n')}\n}`
 }
 
 export function normalizeFeedEvent(raw: RawFeedEvent): GitHubFeedEvent {
@@ -118,12 +184,17 @@ function normalizeFeedEventPayload(
         kind: 'push',
         branch: String(payload.ref ?? '').replace(/^refs\/heads\//, ''),
         commitCount: typeof payload.size === 'number' ? payload.size : (payload.commits?.length ?? 0),
+        commitMessages: (Array.isArray(payload.commits) ? payload.commits : [])
+          .slice(0, MAX_COMMIT_MESSAGES)
+          .map((commit: { message?: string | null }) => firstLine(commit.message))
+          .filter((message: string) => message.length > 0),
       }
     case 'ReleaseEvent':
       return {
         kind: 'release',
         tagName: String(payload.release?.tag_name ?? ''),
         releaseName: payload.release?.name ?? null,
+        excerpt: truncateExcerpt(payload.release?.body),
       }
     case 'PublicEvent':
       return { kind: 'public' }
@@ -135,6 +206,7 @@ function normalizeFeedEventPayload(
         action: String(payload.action ?? ''),
         number: Number(payload.issue?.number ?? 0),
         title: String(payload.issue?.title ?? ''),
+        excerpt: truncateExcerpt(payload.issue?.body),
       }
     case 'IssueCommentEvent':
       return {
@@ -142,6 +214,7 @@ function normalizeFeedEventPayload(
         number: payload.issue?.number ?? null,
         title: String(payload.issue?.title ?? ''),
         isPullRequest: Boolean(payload.issue?.pull_request),
+        excerpt: truncateExcerpt(payload.comment?.body),
       }
     case 'PullRequestEvent':
       return {
@@ -150,23 +223,34 @@ function normalizeFeedEventPayload(
         number: Number(payload.pull_request?.number ?? payload.number ?? 0),
         title: String(payload.pull_request?.title ?? ''),
         merged: Boolean(payload.pull_request?.merged),
+        excerpt: truncateExcerpt(payload.pull_request?.body),
       }
     case 'PullRequestReviewEvent':
       return {
         kind: 'pull-request-review',
         number: payload.pull_request?.number ?? null,
         title: String(payload.pull_request?.title ?? ''),
+        excerpt: truncateExcerpt(payload.review?.body),
       }
     case 'PullRequestReviewCommentEvent':
       return {
         kind: 'pull-request-review-comment',
         number: payload.pull_request?.number ?? null,
         title: String(payload.pull_request?.title ?? ''),
+        excerpt: truncateExcerpt(payload.comment?.body),
       }
     case 'CommitCommentEvent':
-      return { kind: 'commit-comment', commitSha: payload.comment?.commit_id ?? null }
+      return {
+        kind: 'commit-comment',
+        commitSha: payload.comment?.commit_id ?? null,
+        excerpt: truncateExcerpt(payload.comment?.body),
+      }
     case 'DiscussionEvent':
-      return { kind: 'discussion', title: payload.discussion?.title ?? null }
+      return {
+        kind: 'discussion',
+        title: payload.discussion?.title ?? null,
+        excerpt: truncateExcerpt(payload.discussion?.body),
+      }
     case 'GollumEvent':
       return { kind: 'wiki', pageCount: Array.isArray(payload.pages) ? payload.pages.length : 0 }
     case 'SponsorshipEvent':
@@ -178,4 +262,23 @@ function normalizeFeedEventPayload(
 
 function hasNextPage(link: string | undefined): boolean {
   return Boolean(link?.includes('rel="next"'))
+}
+
+const MAX_COMMIT_MESSAGES = 5
+const MAX_EXCERPT_LENGTH = 280
+
+// 卡片摘要在 API 层裁剪，避免整段 markdown 正文走 IPC
+function truncateExcerpt(text: unknown): string | null {
+  if (typeof text !== 'string') return null
+
+  const collapsed = text.replace(/\r/g, '').replace(/\n{2,}/g, '\n').trim()
+  if (!collapsed) return null
+
+  return collapsed.length > MAX_EXCERPT_LENGTH ? `${collapsed.slice(0, MAX_EXCERPT_LENGTH)}…` : collapsed
+}
+
+function firstLine(text: unknown): string {
+  if (typeof text !== 'string') return ''
+
+  return text.split('\n', 1)[0].trim()
 }
