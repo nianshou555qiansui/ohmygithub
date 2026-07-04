@@ -3,6 +3,7 @@ import { app, BrowserWindow, ipcMain, Menu, nativeImage, nativeTheme, shell, typ
 import { is } from '@electron-toolkit/utils'
 import { registerAccountsIpc } from './accounts'
 import { registerActionsIpc } from './actions'
+import { registerActivityIpc } from './activity'
 import { initializeAuth, registerAuthIpc } from './auth'
 import { registerBookmarksIpc } from './bookmarks'
 import { initializeConfig, registerConfigIpc, type LocalConfig } from './config'
@@ -138,6 +139,7 @@ void app.whenReady().then(() => {
   configureDevelopmentAppIcon()
   registerAccountsIpc()
   registerActionsIpc()
+  registerActivityIpc()
   registerAuthIpc()
   registerBookmarksIpc()
   registerConfigIpc((config) => applyThemeSource(config.ui.theme))

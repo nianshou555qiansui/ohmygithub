@@ -150,6 +150,10 @@ const api = {
     markThreadAsDone: (threadId: string) => ipcRenderer.invoke('inbox:mark-thread-done', threadId),
     unsubscribe: (threadId: string) => ipcRenderer.invoke('inbox:unsubscribe', threadId),
   },
+  activity: {
+    listReceivedEvents: (options?: { page?: number }) =>
+      ipcRenderer.invoke('activity:list-received-events', options),
+  },
   releases: {
     listRepositoryReleases: (options: unknown) =>
       ipcRenderer.invoke('releases:list', options),

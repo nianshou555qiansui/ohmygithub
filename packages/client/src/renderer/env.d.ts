@@ -1281,6 +1281,46 @@ type GitHubNotification = {
   htmlUrl: string
 }
 
+type GitHubFeedEventActor = {
+  login: string
+  avatarUrl: string | null
+}
+
+type GitHubFeedEventPayload =
+  | { kind: 'star' }
+  | { kind: 'fork'; forkFullName: string | null }
+  | { kind: 'create'; refType: 'repository' | 'branch' | 'tag'; ref: string | null }
+  | { kind: 'delete'; refType: 'branch' | 'tag'; ref: string }
+  | { kind: 'push'; branch: string; commitCount: number }
+  | { kind: 'release'; tagName: string; releaseName: string | null }
+  | { kind: 'public' }
+  | { kind: 'member'; memberLogin: string | null }
+  | { kind: 'issue'; action: string; number: number; title: string }
+  | { kind: 'issue-comment'; number: number | null; title: string; isPullRequest: boolean }
+  | { kind: 'pull-request'; action: string; number: number; title: string; merged: boolean }
+  | { kind: 'pull-request-review'; number: number | null; title: string }
+  | { kind: 'pull-request-review-comment'; number: number | null; title: string }
+  | { kind: 'commit-comment'; commitSha: string | null }
+  | { kind: 'discussion'; title: string | null }
+  | { kind: 'wiki'; pageCount: number }
+  | { kind: 'sponsorship' }
+  | { kind: 'unknown'; type: string }
+
+type GitHubFeedEvent = {
+  id: string
+  type: string
+  actor: GitHubFeedEventActor
+  repoFullName: string
+  createdAt: string
+  payload: GitHubFeedEventPayload
+}
+
+type GitHubFeedEventPage = {
+  events: GitHubFeedEvent[]
+  page: number
+  hasMore: boolean
+}
+
 type GitHubPullRequest = {
   id: string
   owner: string
@@ -1944,6 +1984,9 @@ interface Window {
       markAllAsRead: () => Promise<void>
       markThreadAsDone: (threadId: string) => Promise<void>
       unsubscribe: (threadId: string) => Promise<void>
+    }
+    activity: {
+      listReceivedEvents: (options?: { page?: number }) => Promise<GitHubFeedEventPage>
     }
     releases: {
       listRepositoryReleases: (options: ListRepositoryReleasesOptions) => Promise<GitHubReleasePage>
