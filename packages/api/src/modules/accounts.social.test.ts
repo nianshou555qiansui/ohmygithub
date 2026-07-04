@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { GitHubOctokit } from '../transport'
 import { AccountsApi } from './accounts'
+import { enrichFollowAccounts } from './social-users'
 
 function createApi() {
   const request = vi.fn()
@@ -176,6 +177,50 @@ describe('AccountsApi listFollowers', () => {
     await api.listFollowers('octo')
 
     expect(graphql).not.toHaveBeenCalled()
+  })
+})
+
+describe('enrichFollowAccounts', () => {
+  function buildUsers(count: number) {
+    return Array.from({ length: count }, (_unused, index) => ({
+      id: index + 1,
+      login: `user-${index + 1}`,
+      avatar_url: null,
+      type: 'User',
+    }))
+  }
+
+  it('merges enrichment across multiple 100-login chunks', async () => {
+    const graphql = vi.fn()
+      .mockResolvedValueOnce({ o0: { __typename: 'User', name: 'First chunk' } })
+      .mockResolvedValueOnce({ o0: { __typename: 'User', name: 'Second chunk' } })
+    const octokit = { graphql } as unknown as GitHubOctokit
+
+    const result = await enrichFollowAccounts(octokit, buildUsers(101))
+
+    expect(graphql).toHaveBeenCalledTimes(2)
+    // Both chunks reuse the o0 alias, so the merge must key each node by its own
+    // chunk's login rather than a shared response index.
+    expect(result.get('user-1')).toMatchObject({ name: 'First chunk' })
+    expect(result.get('user-101')).toMatchObject({ name: 'Second chunk' })
+  })
+
+  it('dispatches chunk queries concurrently rather than one after another', async () => {
+    let resolveFirst: (value: unknown) => void = () => {}
+    const graphql = vi.fn()
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveFirst = resolve }))
+      .mockResolvedValueOnce({ o0: null })
+    const octokit = { graphql } as unknown as GitHubOctokit
+
+    const pending = enrichFollowAccounts(octokit, buildUsers(101))
+    await Promise.resolve()
+
+    // The second chunk fires before the first resolves — the sequential version
+    // would not have called graphql a second time yet.
+    expect(graphql).toHaveBeenCalledTimes(2)
+
+    resolveFirst({ o0: null })
+    await pending
   })
 })
 

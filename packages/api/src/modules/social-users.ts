@@ -105,6 +105,8 @@ async function fetchPageRange<T>(
 
 // One aliased repositoryOwner lookup per row adds name/bio and the viewer's
 // follow relationship to a plain REST user list, batched 100 logins per query.
+// Chunks are fetched concurrently: a windowed list can span up to ten batches,
+// and running them one after another was the dominant load-time cost.
 export async function enrichFollowAccounts(
   octokit: GitHubOctokit,
   users: FollowUserResponse[],
@@ -112,10 +114,13 @@ export async function enrichFollowAccounts(
   const logins = users
     .map((user) => user.login ?? '')
     .filter((login) => /^[a-zA-Z0-9-]+$/.test(login))
-  const enrichments = new Map<string, GraphFollowEnrichmentNode>()
 
+  const chunks: string[][] = []
   for (let offset = 0; offset < logins.length; offset += ENRICH_CHUNK_SIZE) {
-    const chunk = logins.slice(offset, offset + ENRICH_CHUNK_SIZE)
+    chunks.push(logins.slice(offset, offset + ENRICH_CHUNK_SIZE))
+  }
+
+  const responses = await Promise.all(chunks.map((chunk) => {
     const selections = chunk.map((login, index) => `
       o${index}: repositoryOwner(login: "${login}") {
         __typename
@@ -134,15 +139,18 @@ export async function enrichFollowAccounts(
         }
       }
     `)
-    const response = await octokit.graphql<Record<string, GraphFollowEnrichmentNode | null>>(
+    return octokit.graphql<Record<string, GraphFollowEnrichmentNode | null>>(
       `query FollowEnrichment {${selections.join('\n')}}`,
     )
+  }))
 
-    chunk.forEach((login, index) => {
+  const enrichments = new Map<string, GraphFollowEnrichmentNode>()
+  responses.forEach((response, chunkIndex) => {
+    chunks[chunkIndex].forEach((login, index) => {
       const node = response[`o${index}`]
       if (node) enrichments.set(login.toLowerCase(), node)
     })
-  }
+  })
 
   return enrichments
 }

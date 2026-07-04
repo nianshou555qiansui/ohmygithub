@@ -607,6 +607,43 @@ export interface GitHubRepositoryCustomPropertyValue {
   value: string | string[] | null
 }
 
+export type GitHubSecurityFeatureStatus = 'enabled' | 'disabled' | 'unavailable'
+
+export interface GitHubRepositorySecurityOverview {
+  advancedSecurity: GitHubSecurityFeatureStatus
+  secretScanning: GitHubSecurityFeatureStatus
+  secretScanningPushProtection: GitHubSecurityFeatureStatus
+  vulnerabilityAlerts: boolean | null
+  automatedSecurityFixes: boolean | null
+  privateVulnerabilityReporting: boolean | null
+}
+
+export interface UpdateSecurityAndAnalysisInput {
+  advancedSecurity?: 'enabled' | 'disabled'
+  secretScanning?: 'enabled' | 'disabled'
+  secretScanningPushProtection?: 'enabled' | 'disabled'
+}
+
+export interface GitHubDeployKey {
+  id: number
+  title: string
+  key: string
+  readOnly: boolean
+  createdAt: string | null
+}
+
+export type GitHubRepositorySecretScope = 'actions' | 'codespaces' | 'dependabot'
+
+export interface GitHubRepositorySecret {
+  name: string
+  updatedAt: string | null
+}
+
+export interface GitHubRepositoryVariable {
+  name: string
+  value: string
+}
+
 export interface GitHubRepositoryContributorSummary {
   id: number
   login: string
