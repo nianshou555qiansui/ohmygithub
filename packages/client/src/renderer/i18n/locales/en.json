@@ -1357,9 +1357,18 @@
     },
     "overview": {
       "basicInfo": "Basic information",
+      "contributors": {
+        "title": "Contributors",
+        "tooltip": "{login} · {count} commits",
+        "viewAll": "View all"
+      },
       "customProperties": "Custom properties",
       "documents": "Repository documents",
       "error": "Could not load repository overview.",
+      "languages": {
+        "other": "Other",
+        "title": "Languages"
+      },
       "loading": "Loading repository overview...",
       "missingScopes": {
         "description": "Reconnect GitHub to grant: {scopes}. Some repository data may be hidden until these scopes are available.",

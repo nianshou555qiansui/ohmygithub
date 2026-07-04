@@ -1357,9 +1357,18 @@
     },
     "overview": {
       "basicInfo": "基本信息",
+      "contributors": {
+        "title": "贡献者",
+        "tooltip": "{login} · {count} 次提交",
+        "viewAll": "查看全部"
+      },
       "customProperties": "自定义属性",
       "documents": "仓库文档",
       "error": "无法加载仓库概览。",
+      "languages": {
+        "other": "其他",
+        "title": "语言"
+      },
       "loading": "正在加载仓库概览...",
       "missingScopes": {
         "description": "请重新连接 GitHub 以授权：{scopes}。授权前部分仓库数据可能不会显示。",

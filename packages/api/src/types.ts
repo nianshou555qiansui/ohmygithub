@@ -362,6 +362,14 @@ export interface GitHubRepositoryOverview {
   warnings: string[]
 }
 
+export interface GitHubRepositoryContributorSummary {
+  id: number
+  login: string
+  avatarUrl: string | null
+  contributions: number
+  type: string
+}
+
 export interface GitHubContributorStatsAuthor {
   id: number
   login: string
@@ -1363,6 +1371,7 @@ export interface GitHubClient {
   getRepositoryNavigationCounts(options: RepositoryOptions): Promise<GitHubRepositoryNavigationCounts>
   getRepositoryOverview(options: RepositoryOptions): Promise<GitHubRepositoryOverview>
   getRepositoryContributorStats(options: RepositoryContributorStatsOptions): Promise<GitHubRepositoryContributorStatsResult>
+  listRepositoryContributors(options: ListRepositoryContributorsOptions): Promise<GitHubRepositoryContributorSummary[]>
   listRepositoryFiles(options: RepositoryFilesOptions): Promise<GitHubRepositoryFileTree>
   listRepositoryCommits(options: RepositoryCommitsOptions): Promise<GitHubRepositoryCommitPage>
   listRepositoryBranches(options: RepositoryBranchesOptions): Promise<GitHubRepositoryBranch[]>
@@ -1683,6 +1692,11 @@ export interface ResolveRepositoryReferenceOptions extends RepositoryOptions {
 
 export interface RepositoryFilesOptions extends RepositoryOptions {
   ref?: string | null
+}
+
+export interface ListRepositoryContributorsOptions extends RepositoryOptions {
+  /** Number of contributors to fetch. Defaults to 30, capped at 100. */
+  perPage?: number
 }
 
 export interface RepositoryContributorStatsOptions extends RepositoryOptions {

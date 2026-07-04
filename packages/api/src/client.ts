@@ -124,6 +124,7 @@ export function createGitHubApi(options: GitHubApiOptions): GitHubApi {
     getRepositoryNavigationCounts: (options) => repositories.getNavigationCounts(options),
     getRepositoryOverview: (options) => repositories.getOverview(options),
     getRepositoryContributorStats: (options) => repositories.getContributorStats(options),
+    listRepositoryContributors: (options) => repositories.listContributors(options),
     listRepositoryFiles: (options) => repositories.listFiles(options),
     listRepositoryCommits: (options) => repositories.listCommits(options),
     listRepositoryBranches: (options) => repositories.listBranches(options),

@@ -1,20 +1,43 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { AlertTriangle, ExternalLink, Globe } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 import { Skeleton } from '@oh-my-github/ui'
+import { useRepositoryContributorsQuery } from '@/composables/github/use-repositories'
 import type { RepositoryOverviewInfoItem } from '@/pages/repository/components/types'
+import OverviewContributors from './overview-contributors.vue'
 import OverviewInfoGrid from './overview-info-grid.vue'
+import OverviewLanguages from './overview-languages.vue'
+import { computeLanguageShares } from './overview-language-shares'
 
-defineProps<{
+const props = defineProps<{
   hasOverviewError: boolean
   isOverviewLoading: boolean
   missingScopesText: string
   overview: GitHubRepositoryOverview | null
   overviewDescription: string
   overviewInfoItems: RepositoryOverviewInfoItem[]
+  owner: string
+  repo: string
+}>()
+
+const emit = defineEmits<{
+  viewAllContributors: []
 }>()
 
 const { t } = useI18n()
+
+const contributorsQuery = useRepositoryContributorsQuery(
+  () => props.owner,
+  () => props.repo,
+  () => Boolean(props.overview),
+)
+const contributors = computed(() => contributorsQuery.data.value ?? [])
+const isContributorsLoading = computed(() => contributorsQuery.isPending.value)
+
+const languageShares = computed(() => computeLanguageShares(props.overview?.languages ?? []))
+const showLanguages = computed(() => languageShares.value.length > 0)
+const showContributors = computed(() => isContributorsLoading.value || contributors.value.length > 0)
 </script>
 
 <template>
@@ -49,16 +72,20 @@ const { t } = useI18n()
           <Skeleton class="h-6 w-24 rounded-full" />
           <Skeleton class="h-6 w-16 rounded-full" />
         </div>
-        <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+        <div class="flex flex-wrap gap-x-8 gap-y-1">
           <div
-            v-for="index in 9"
-            :key="index"
-            class="flex items-center gap-2 rounded-lg border border-border p-3"
+            v-for="column in 2"
+            :key="column"
+            class="grid min-w-[240px] flex-1 content-start gap-y-1"
           >
-            <Skeleton class="size-4 rounded-md" />
-            <div class="grid min-w-0 flex-1 gap-1.5">
-              <Skeleton class="h-3 w-20 rounded-md" />
-              <Skeleton class="h-4 w-28 rounded-md" />
+            <div
+              v-for="index in 5"
+              :key="index"
+              class="flex items-center gap-2 py-1"
+            >
+              <Skeleton class="size-4 rounded-md" />
+              <Skeleton class="h-3.5 w-24 rounded-md" />
+              <Skeleton class="ml-auto h-3.5 w-16 rounded-md" />
             </div>
           </div>
         </div>
@@ -123,6 +150,26 @@ const { t } = useI18n()
         <div class="h-px bg-border" />
 
         <OverviewInfoGrid :items="overviewInfoItems" />
+
+        <template v-if="showLanguages || showContributors">
+          <div class="h-px bg-border" />
+
+          <div
+            class="grid gap-6"
+            :class="showLanguages && showContributors ? 'sm:grid-cols-2' : ''"
+          >
+            <OverviewLanguages
+              v-if="showLanguages"
+              :shares="languageShares"
+            />
+            <OverviewContributors
+              v-if="showContributors"
+              :contributors="contributors"
+              :is-loading="isContributorsLoading"
+              @view-all="emit('viewAllContributors')"
+            />
+          </div>
+        </template>
 
         <div
           v-if="overview.customProperties.length > 0"

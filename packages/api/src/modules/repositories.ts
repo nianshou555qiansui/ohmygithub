@@ -1,11 +1,13 @@
 import { RequestError, type GitHubOctokit } from '../transport'
 import { CONTRIBUTOR_STATS_PENDING } from '../types'
+import { rewriteImagesToCamo } from './markdown-camo'
 import type {
   GitHubCiState,
   GitHubCommitDetail,
   GitHubContributorStatsWeek,
   GitHubRepositoryContributorStats,
   GitHubRepositoryContributorStatsResult,
+  GitHubRepositoryContributorSummary,
   GitHubCommitFile,
   GitHubRepositoryBranch,
   GitHubRepositoryCommit,
@@ -37,6 +39,7 @@ import type {
   GitHubTagListItem,
   GitHubTagPage,
   ListRepositoryBranchesDetailedOptions,
+  ListRepositoryContributorsOptions,
   ListRepositoryTagsOptions,
   RenameRepositoryBranchOptions,
   RepositoryBranchesOptions,
@@ -771,6 +774,34 @@ export class RepositoriesApi {
     throw new Error(CONTRIBUTOR_STATS_PENDING)
   }
 
+  async listContributors(options: ListRepositoryContributorsOptions): Promise<GitHubRepositoryContributorSummary[]> {
+    const perPage = Math.max(1, Math.min(100, Math.floor(options.perPage ?? 30)))
+    const response = await this.octokit.request('GET /repos/{owner}/{repo}/contributors', {
+      owner: options.owner,
+      repo: options.repo,
+      per_page: perPage,
+    })
+    const contributors = response.data as Array<{
+      id?: number
+      login?: string
+      avatar_url?: string
+      contributions?: number
+      type?: string
+    }>
+
+    return contributors.flatMap((contributor) => {
+      if (!contributor.login || typeof contributor.id !== 'number') return []
+
+      return [{
+        id: contributor.id,
+        login: contributor.login,
+        avatarUrl: contributor.avatar_url ?? null,
+        contributions: contributor.contributions ?? 0,
+        type: contributor.type ?? 'User',
+      }]
+    })
+  }
+
   async getCommit(options: RepositoryCommitOptions): Promise<GitHubCommitDetail> {
     const response = await this.octokit.request('GET /repos/{owner}/{repo}/commits/{ref}', {
       owner: options.owner,
@@ -1065,15 +1096,38 @@ export class RepositoriesApi {
 
   private async getReadmeDocument(options: RepositoryOptions): Promise<GitHubRepositoryDocument | null> {
     try {
-      const response = await this.octokit.request('GET /repos/{owner}/{repo}/readme', {
-        owner: options.owner,
-        repo: options.repo,
-      })
+      const [response, renderedHtml] = await Promise.all([
+        this.octokit.request('GET /repos/{owner}/{repo}/readme', {
+          owner: options.owner,
+          repo: options.repo,
+        }),
+        this.getReadmeRenderedHtml(options),
+      ])
 
-      return mapContentDocument('readme', 'README', response.data)
+      const document = mapContentDocument('readme', 'README', response.data)
+      if (!document || document.format !== 'markdown') return document
+
+      return {
+        ...document,
+        content: rewriteImagesToCamo(document.content, renderedHtml),
+      }
     } catch (error) {
       if (isNotFoundError(error)) return null
       throw error
+    }
+  }
+
+  private async getReadmeRenderedHtml(options: RepositoryOptions): Promise<string | null> {
+    try {
+      const response = await this.octokit.request('GET /repos/{owner}/{repo}/readme', {
+        owner: options.owner,
+        repo: options.repo,
+        mediaType: { format: 'html' },
+      })
+
+      return typeof response.data === 'string' ? response.data : null
+    } catch {
+      return null
     }
   }
 

@@ -16,6 +16,9 @@ export function registerRepositoriesIpc(): void {
   ipcMain.handle('repositories:get-contributor-stats', (_event, owner: string, repo: string) =>
     getRepositoryContributorStats(owner, repo)
   )
+  ipcMain.handle('repositories:list-contributors', (_event, owner: string, repo: string, perPage?: number) =>
+    listRepositoryContributors(owner, repo, perPage)
+  )
   ipcMain.handle('repositories:list-files', (_event, owner: string, repo: string, ref?: string | null) =>
     listRepositoryFiles(owner, repo, ref)
   )
@@ -107,6 +110,16 @@ async function getRepositoryContributorStats(owner: string, repo: string) {
   const api = await createAuthenticatedGitHubApi()
 
   return api.repositories.getContributorStats(repository)
+}
+
+async function listRepositoryContributors(owner: string, repo: string, perPage?: number) {
+  const repository = normalizeRepository(owner, repo)
+  const api = await createAuthenticatedGitHubApi()
+
+  return api.repositories.listContributors({
+    ...repository,
+    perPage,
+  })
 }
 
 async function listRepositoryFiles(owner: string, repo: string, ref?: string | null) {
@@ -372,7 +385,12 @@ function listMissingOAuthScopes(): string[] {
 function hasScope(scopes: string[], requiredScope: string): boolean {
   if (scopes.includes(requiredScope)) return true
 
-  if ((requiredScope === 'read:user' || requiredScope === 'user:email') && scopes.includes('user')) {
+  // GitHub collapses granted child scopes into the parent: requesting
+  // `user user:follow` stores just `user`, which covers all user:* children.
+  if (
+    (requiredScope === 'read:user' || requiredScope === 'user:email' || requiredScope === 'user:follow')
+    && scopes.includes('user')
+  ) {
     return true
   }
 

@@ -479,6 +479,7 @@ watch(
           :overview-description="overviewDescription"
           :overview-info-items="overviewInfoItems"
           :repo="repository"
+          @view-all-contributors="setActiveSection('contributors')"
         />
 
         <FilesPanel

@@ -563,6 +563,14 @@ type GitHubRepositoryContributorStatsResult = {
   hasLineStats: boolean
 }
 
+type GitHubRepositoryContributorSummary = {
+  id: number
+  login: string
+  avatarUrl: string | null
+  contributions: number
+  type: string
+}
+
 type GitHubRepositoryFileNodeType = 'tree' | 'file'
 
 type GitHubRepositoryFileNode = {
@@ -1922,6 +1930,7 @@ interface Window {
       getNavigationCounts: (owner: string, repo: string) => Promise<GitHubRepositoryNavigationCounts>
       getOverview: (owner: string, repo: string) => Promise<GitHubRepositoryOverview>
       getContributorStats: (owner: string, repo: string) => Promise<GitHubRepositoryContributorStatsResult>
+      listContributors: (owner: string, repo: string, perPage?: number) => Promise<GitHubRepositoryContributorSummary[]>
       listFiles: (owner: string, repo: string, ref?: string | null) => Promise<GitHubRepositoryFileTree>
       listCommits: (
         owner: string,

@@ -53,6 +53,7 @@ import type {
   GitHubRepositoryCommit,
   GitHubRepositoryCommitPage,
   GitHubRepositoryContributorStatsResult,
+  GitHubRepositoryContributorSummary,
   GitHubRepositoryFileNode,
   GitHubRepositoryFilePreview,
   GitHubRepositoryFileTree,
@@ -1325,6 +1326,16 @@ export class MockGitHubClient implements GitHubClient {
 
   async getRepositoryContributorStats(): Promise<GitHubRepositoryContributorStatsResult> {
     return createMockRepositoryContributorStats()
+  }
+
+  async listRepositoryContributors(): Promise<GitHubRepositoryContributorSummary[]> {
+    return createMockRepositoryContributorStats().contributors.map((contributor) => ({
+      id: contributor.author.id,
+      login: contributor.author.login,
+      avatarUrl: contributor.author.avatarUrl,
+      contributions: contributor.total,
+      type: contributor.author.type,
+    }))
   }
 
   async listRepositoryFiles(options: RepositoryFilesOptions): Promise<GitHubRepositoryFileTree> {

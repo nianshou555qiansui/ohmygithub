@@ -19,6 +19,7 @@ defineProps<{
 
 const emit = defineEmits<{
   'update:activeDocumentKind': [value: GitHubRepositoryDocumentKind]
+  viewAllContributors: []
 }>()
 </script>
 
@@ -30,6 +31,9 @@ const emit = defineEmits<{
     :overview="overview"
     :overview-description="overviewDescription"
     :overview-info-items="overviewInfoItems"
+    :owner="owner"
+    :repo="repo"
+    @view-all-contributors="emit('viewAllContributors')"
   />
 
   <OverviewDocumentsCard
