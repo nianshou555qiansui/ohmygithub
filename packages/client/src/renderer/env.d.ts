@@ -451,6 +451,18 @@ type GitHubForkedRepository = {
   ready: boolean
 }
 
+type GitHubCreatedRepository = {
+  owner: string
+  name: string
+  nameWithOwner: string
+  url: string
+}
+
+type GitHubLicenseTemplate = {
+  key: string
+  name: string
+}
+
 type GitHubRepositoryVisibility = 'public' | 'private' | 'internal'
 
 type GitHubRepositoryDocumentKind =
@@ -1984,6 +1996,17 @@ interface Window {
           defaultBranchOnly?: boolean
         }
       ) => Promise<GitHubForkedRepository>
+      create: (options: {
+        organization: string | null
+        name: string
+        description: string | null
+        visibility: 'public' | 'private'
+        autoInit: boolean
+        gitignoreTemplate: string | null
+        licenseTemplate: string | null
+      }) => Promise<GitHubCreatedRepository>
+      listGitignoreTemplates: () => Promise<string[]>
+      listLicenses: () => Promise<GitHubLicenseTemplate[]>
     }
     search: {
       resolveGoto: (input: string) => Promise<GitHubWorkspaceGotoResult>

@@ -200,7 +200,10 @@ const api = {
     setSubscription: (owner: string, repo: string, subscription: string) =>
       ipcRenderer.invoke('repositories:set-subscription', owner, repo, subscription),
     fork: (owner: string, repo: string, options?: unknown) =>
-      ipcRenderer.invoke('repositories:fork', owner, repo, options)
+      ipcRenderer.invoke('repositories:fork', owner, repo, options),
+    create: (options: unknown) => ipcRenderer.invoke('repositories:create', options),
+    listGitignoreTemplates: () => ipcRenderer.invoke('repositories:list-gitignore-templates'),
+    listLicenses: () => ipcRenderer.invoke('repositories:list-licenses')
   },
   search: {
     resolveGoto: (input: string) => ipcRenderer.invoke('search:resolve-goto', input),

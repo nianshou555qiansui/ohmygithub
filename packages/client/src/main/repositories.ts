@@ -64,12 +64,27 @@ export function registerRepositoriesIpc(): void {
   ipcMain.handle('repositories:fork', (_event, owner: string, repo: string, options?: ForkRepositoryIpcOptions) =>
     forkRepository(owner, repo, options)
   )
+  ipcMain.handle('repositories:create', (_event, options: CreateRepositoryIpcOptions) =>
+    createRepository(options)
+  )
+  ipcMain.handle('repositories:list-gitignore-templates', () => listGitignoreTemplates())
+  ipcMain.handle('repositories:list-licenses', () => listLicenses())
 }
 
 interface ForkRepositoryIpcOptions {
   organization?: string | null
   name?: string | null
   defaultBranchOnly?: boolean
+}
+
+interface CreateRepositoryIpcOptions {
+  organization?: string | null
+  name: string
+  description?: string | null
+  visibility?: string
+  autoInit?: boolean
+  gitignoreTemplate?: string | null
+  licenseTemplate?: string | null
 }
 
 const repositorySubscriptions = ['participating', 'all', 'ignore'] as const
@@ -347,6 +362,32 @@ async function forkRepository(owner: string, repo: string, options?: ForkReposit
     name: options?.name?.trim() || null,
     defaultBranchOnly: options?.defaultBranchOnly ?? true,
   })
+}
+
+async function createRepository(options: CreateRepositoryIpcOptions) {
+  const api = await createAuthenticatedGitHubApi()
+
+  return api.repositories.create({
+    organization: options?.organization?.trim() || null,
+    name: String(options?.name ?? '').trim(),
+    description: options?.description?.trim() || null,
+    visibility: options?.visibility === 'private' ? 'private' : 'public',
+    autoInit: options?.autoInit ?? false,
+    gitignoreTemplate: options?.gitignoreTemplate?.trim() || null,
+    licenseTemplate: options?.licenseTemplate?.trim() || null,
+  })
+}
+
+async function listGitignoreTemplates() {
+  const api = await createAuthenticatedGitHubApi()
+
+  return api.repositories.listGitignoreTemplates()
+}
+
+async function listLicenses() {
+  const api = await createAuthenticatedGitHubApi()
+
+  return api.repositories.listLicenses()
 }
 
 function normalizeRepository(owner: string, repo: string) {
