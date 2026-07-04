@@ -3,7 +3,7 @@ import type { AccountTabId, RepositoryTabId, WorkspaceTab, WorkspaceTabType } fr
 
 export const DEFAULT_WORKSPACE_URL = '/inbox'
 
-const INTERNAL_TYPES = new Set<WorkspaceTabType>(['inbox', 'reviews', 'activity'])
+const INTERNAL_TYPES = new Set<WorkspaceTabType>(['inbox', 'reviews', 'activity', 'new-repository'])
 const INTERNAL_PATHS = new Set(['pull-requests', 'issues', 'search', 'not-found', 'apps'])
 const DEFAULT_ACCOUNT_SECTION: AccountTabId = 'overview'
 const DEFAULT_REPOSITORY_SECTION: RepositoryTabId = 'overview'
@@ -22,6 +22,7 @@ const VALID_TYPES = new Set<WorkspaceTabType>([
   'inbox',
   'reviews',
   'activity',
+  'new-repository',
   'account',
   'app',
   'repo',
@@ -312,6 +313,7 @@ function titleForWorkspaceTab(tab: Omit<WorkspaceTab, 'title'>): string {
   if (tab.type === 'inbox') return 'Inbox'
   if (tab.type === 'reviews') return 'Review Queue'
   if (tab.type === 'activity') return 'Activity'
+  if (tab.type === 'new-repository') return 'New Repository'
   if (tab.type === 'pull-request-list') return titleForPullRequestCategory(tab.pullRequestCategory)
   if (tab.type === 'issue-list') return titleForIssueCategory(tab.issueCategory)
   if (tab.type === 'pull-request') return `${tab.owner}/${tab.repo}#${tab.number ?? ''}`

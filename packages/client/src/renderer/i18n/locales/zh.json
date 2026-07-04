@@ -2216,6 +2216,7 @@
       "items": {
         "activity": "活动",
         "inbox": "收件箱",
+        "newRepository": "新建仓库",
         "reviews": "Review Queue"
       }
     },
@@ -2293,6 +2294,7 @@
         "pullRequestList": "这个分类下的 Pull Request 会从左侧树里展开，完整列表视图后续再接入。",
         "issue": "{owner}/{repo} #{number} 的 Issue 数据会在这里继续接入。",
         "issueList": "这个分类下的 Issue 会从左侧树里展开，完整列表视图后续再接入。",
+        "newRepository": "在你的账号或组织下创建仓库。",
         "notFound": "没有匹配这个输入的 GitHub 账号、组织或仓库。",
         "repo": "{owner}/{repo} 已作为仓库 tab 打开。本次只保留 URL、类型和占位面板。",
         "reviews": "把等待你处理的拉取请求和合并前检查放在一个可切换 tab 中。",
@@ -2303,6 +2305,7 @@
         "activity": "Activity",
         "actionRun": "Action Run",
         "commit": "Commit",
+        "create": "创建",
         "issue": "Issue",
         "issueList": "Issue 列表",
         "notFound": "未找到",
@@ -2321,6 +2324,7 @@
         "inbox": "收件箱",
         "issue": "{owner}/{repo} #{number}",
         "issueList": "{title}",
+        "newRepository": "创建新仓库",
         "notFound": "{title}",
         "pullRequest": "{owner}/{repo} #{number}",
         "pullRequestList": "{title}",

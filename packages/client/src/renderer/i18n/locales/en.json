@@ -2216,6 +2216,7 @@
       "items": {
         "activity": "Activity",
         "inbox": "Inbox",
+        "newRepository": "New Repository",
         "reviews": "Review Queue"
       }
     },
@@ -2293,6 +2294,7 @@
         "pullRequestList": "Pull requests in this category are listed from the sidebar tree. A full list view can be connected here later.",
         "issue": "Issue data for {owner}/{repo} #{number} will be connected here.",
         "issueList": "Issues in this category are listed from the sidebar tree. A full list view can be connected here later.",
+        "newRepository": "Set up a repository under your account or an organization.",
         "notFound": "No GitHub account, organization, or repository matched this input.",
         "repo": "{owner}/{repo} is open as a repository tab. This version only keeps URL, type, and placeholder state.",
         "reviews": "Keep pull requests and merge checks in a focused tab that can grow into real data later.",
@@ -2303,6 +2305,7 @@
         "activity": "Activity",
         "actionRun": "Action Run",
         "commit": "Commit",
+        "create": "Create",
         "issue": "Issue",
         "issueList": "Issue List",
         "notFound": "Not Found",
@@ -2321,6 +2324,7 @@
         "inbox": "Inbox",
         "issue": "{owner}/{repo} #{number}",
         "issueList": "{title}",
+        "newRepository": "Create a new repository",
         "notFound": "{title}",
         "pullRequest": "{owner}/{repo} #{number}",
         "pullRequestList": "{title}",

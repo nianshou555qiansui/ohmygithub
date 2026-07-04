@@ -22,3 +22,18 @@ describe('action run workspace URLs', () => {
       })
   })
 })
+
+describe('new repository workspace URLs', () => {
+  it('parses /new-repository as an internal tab', () => {
+    expect(normalizeWorkspaceUrl('/new-repository')).toBe('/new-repository')
+    expect(createWorkspaceTabFromUrl('/new-repository')).toMatchObject({
+      type: 'new-repository',
+      url: '/new-repository',
+      title: 'New Repository',
+    })
+  })
+
+  it('does not treat new-repository as an account path', () => {
+    expect(createWorkspaceTabFromUrl('/new-repository').type).not.toBe('account')
+  })
+})

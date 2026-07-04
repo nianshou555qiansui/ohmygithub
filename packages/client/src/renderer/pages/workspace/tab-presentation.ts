@@ -7,6 +7,7 @@ import {
   GitCommitHorizontal,
   GitPullRequest,
   Inbox,
+  Plus,
   Search,
   SearchX,
   UserRound,
@@ -104,6 +105,20 @@ export function getWorkspaceTabView(tab: WorkspaceTab): WorkspaceTabView {
           metaKey: 'workspace.panel.blocks.repositoryFocus.meta',
         },
       ],
+    }
+  }
+
+  if (tab.type === 'new-repository') {
+    return {
+      tab,
+      icon: Plus,
+      titleKey: 'workspace.tabs.items.newRepository',
+      title: tab.title,
+      eyebrowKey: 'workspace.panel.eyebrows.create',
+      headingKey: 'workspace.panel.headings.newRepository',
+      descriptionKey: 'workspace.panel.descriptions.newRepository',
+      stats: [],
+      blocks: [],
     }
   }
 

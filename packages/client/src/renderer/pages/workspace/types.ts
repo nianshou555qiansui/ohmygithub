@@ -28,6 +28,7 @@ export type WorkspaceTabType =
   | 'inbox'
   | 'reviews'
   | 'activity'
+  | 'new-repository'
   | 'account'
   | 'app'
   | 'repo'
