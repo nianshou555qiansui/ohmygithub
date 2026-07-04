@@ -255,6 +255,68 @@ const api = {
         ipcRenderer.invoke('repository-settings:access-set-interaction-limits', owner, repo, limit, expiry),
       clearInteractionLimits: (owner: string, repo: string) =>
         ipcRenderer.invoke('repository-settings:access-clear-interaction-limits', owner, repo)
+    },
+    automation: {
+      listProtectedBranches: (owner: string, repo: string) =>
+        ipcRenderer.invoke('repository-settings:automation-protected-branches', owner, repo),
+      deleteBranchProtection: (owner: string, repo: string, branch: string) =>
+        ipcRenderer.invoke('repository-settings:automation-delete-branch-protection', owner, repo, branch),
+      listRulesets: (owner: string, repo: string) =>
+        ipcRenderer.invoke('repository-settings:automation-rulesets', owner, repo),
+      setRulesetEnforcement: (owner: string, repo: string, rulesetId: number, enforcement: string) =>
+        ipcRenderer.invoke('repository-settings:automation-set-ruleset-enforcement', owner, repo, rulesetId, enforcement),
+      deleteRuleset: (owner: string, repo: string, rulesetId: number) =>
+        ipcRenderer.invoke('repository-settings:automation-delete-ruleset', owner, repo, rulesetId),
+      getActionsSettings: (owner: string, repo: string) =>
+        ipcRenderer.invoke('repository-settings:automation-actions-settings', owner, repo),
+      updateActionsPermissions: (owner: string, repo: string, enabled: boolean, allowedActions?: string) =>
+        ipcRenderer.invoke('repository-settings:automation-update-actions-permissions', owner, repo, enabled, allowedActions),
+      updateSelectedActions: (owner: string, repo: string, githubOwnedAllowed: boolean, verifiedAllowed: boolean, patternsAllowed: string[]) =>
+        ipcRenderer.invoke('repository-settings:automation-update-selected-actions', owner, repo, githubOwnedAllowed, verifiedAllowed, patternsAllowed),
+      updateWorkflowPermissions: (owner: string, repo: string, defaultWorkflowPermissions: string, canApprovePullRequestReviews: boolean) =>
+        ipcRenderer.invoke('repository-settings:automation-update-workflow-permissions', owner, repo, defaultWorkflowPermissions, canApprovePullRequestReviews),
+      updateAccessLevel: (owner: string, repo: string, accessLevel: string) =>
+        ipcRenderer.invoke('repository-settings:automation-update-access-level', owner, repo, accessLevel),
+      updateRetention: (owner: string, repo: string, days: number) =>
+        ipcRenderer.invoke('repository-settings:automation-update-retention', owner, repo, days),
+      listRunners: (owner: string, repo: string) =>
+        ipcRenderer.invoke('repository-settings:automation-runners', owner, repo),
+      deleteRunner: (owner: string, repo: string, runnerId: number) =>
+        ipcRenderer.invoke('repository-settings:automation-delete-runner', owner, repo, runnerId),
+      listWebhooks: (owner: string, repo: string) =>
+        ipcRenderer.invoke('repository-settings:automation-webhooks', owner, repo),
+      createWebhook: (owner: string, repo: string, input: unknown) =>
+        ipcRenderer.invoke('repository-settings:automation-create-webhook', owner, repo, input),
+      updateWebhook: (owner: string, repo: string, hookId: number, input: unknown) =>
+        ipcRenderer.invoke('repository-settings:automation-update-webhook', owner, repo, hookId, input),
+      deleteWebhook: (owner: string, repo: string, hookId: number) =>
+        ipcRenderer.invoke('repository-settings:automation-delete-webhook', owner, repo, hookId),
+      pingWebhook: (owner: string, repo: string, hookId: number) =>
+        ipcRenderer.invoke('repository-settings:automation-ping-webhook', owner, repo, hookId),
+      listEnvironments: (owner: string, repo: string) =>
+        ipcRenderer.invoke('repository-settings:automation-environments', owner, repo),
+      upsertEnvironment: (owner: string, repo: string, environmentName: string, input: unknown) =>
+        ipcRenderer.invoke('repository-settings:automation-upsert-environment', owner, repo, environmentName, input),
+      deleteEnvironment: (owner: string, repo: string, environmentName: string) =>
+        ipcRenderer.invoke('repository-settings:automation-delete-environment', owner, repo, environmentName),
+      createEnvironmentBranchPolicy: (owner: string, repo: string, environmentName: string, name: string, type: string) =>
+        ipcRenderer.invoke('repository-settings:automation-create-environment-branch-policy', owner, repo, environmentName, name, type),
+      deleteEnvironmentBranchPolicy: (owner: string, repo: string, environmentName: string, branchPolicyId: number) =>
+        ipcRenderer.invoke('repository-settings:automation-delete-environment-branch-policy', owner, repo, environmentName, branchPolicyId),
+      getPages: (owner: string, repo: string) =>
+        ipcRenderer.invoke('repository-settings:automation-pages', owner, repo),
+      enablePages: (owner: string, repo: string, buildType: string, sourceBranch?: string, sourcePath?: string) =>
+        ipcRenderer.invoke('repository-settings:automation-enable-pages', owner, repo, buildType, sourceBranch, sourcePath),
+      updatePages: (owner: string, repo: string, input: unknown) =>
+        ipcRenderer.invoke('repository-settings:automation-update-pages', owner, repo, input),
+      disablePages: (owner: string, repo: string) =>
+        ipcRenderer.invoke('repository-settings:automation-disable-pages', owner, repo),
+      requestPagesBuild: (owner: string, repo: string) =>
+        ipcRenderer.invoke('repository-settings:automation-request-pages-build', owner, repo),
+      getCustomProperties: (owner: string, repo: string) =>
+        ipcRenderer.invoke('repository-settings:automation-custom-properties', owner, repo),
+      updateCustomProperties: (owner: string, repo: string, values: unknown[]) =>
+        ipcRenderer.invoke('repository-settings:automation-update-custom-properties', owner, repo, values)
     }
   },
   search: {

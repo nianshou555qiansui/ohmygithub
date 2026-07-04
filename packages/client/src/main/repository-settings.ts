@@ -3,7 +3,11 @@ import {
   type GitHubInteractionLimitExpiry,
   type GitHubInteractionLimitGroup,
   type GitHubRepositoryCollaboratorRole,
+  type GitHubRepositoryCustomPropertyValue,
+  type GitHubRulesetEnforcement,
   type UpdateRepositoryGeneralSettingsInput,
+  type UpsertEnvironmentInput,
+  type UpsertRepositoryWebhookInput,
 } from '@oh-my-github/api'
 import { ipcMain } from 'electron'
 import { getAuthenticatedAccessToken } from './auth'
@@ -140,6 +144,229 @@ export function registerRepositorySettingsIpc(): void {
       (await createAuthenticatedGitHubApi()).repositorySettingsAccess.clearInteractionLimits(
         normalizeRepository(owner, repo),
       )
+  )
+
+  ipcMain.handle('repository-settings:automation-protected-branches', async (_event, owner: string, repo: string) =>
+    (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.listProtectedBranches(normalizeRepository(owner, repo))
+  )
+  ipcMain.handle(
+    'repository-settings:automation-delete-branch-protection',
+    async (_event, owner: string, repo: string, branch: string) =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.deleteBranchProtection({
+        ...normalizeRepository(owner, repo),
+        branch: String(branch ?? '').trim(),
+      })
+  )
+  ipcMain.handle('repository-settings:automation-rulesets', async (_event, owner: string, repo: string) =>
+    (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.listRulesets(normalizeRepository(owner, repo))
+  )
+  ipcMain.handle(
+    'repository-settings:automation-set-ruleset-enforcement',
+    async (_event, owner: string, repo: string, rulesetId: number, enforcement: GitHubRulesetEnforcement) =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.setRulesetEnforcement({
+        ...normalizeRepository(owner, repo),
+        rulesetId: Number(rulesetId),
+        enforcement,
+      })
+  )
+  ipcMain.handle(
+    'repository-settings:automation-delete-ruleset',
+    async (_event, owner: string, repo: string, rulesetId: number) =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.deleteRuleset({
+        ...normalizeRepository(owner, repo),
+        rulesetId: Number(rulesetId),
+      })
+  )
+  ipcMain.handle('repository-settings:automation-actions-settings', async (_event, owner: string, repo: string) =>
+    (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.getActionsSettings(normalizeRepository(owner, repo))
+  )
+  ipcMain.handle(
+    'repository-settings:automation-update-actions-permissions',
+    async (_event, owner: string, repo: string, enabled: boolean, allowedActions?: 'all' | 'local_only' | 'selected') =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.updateActionsPermissions({
+        ...normalizeRepository(owner, repo),
+        enabled: Boolean(enabled),
+        allowedActions,
+      })
+  )
+  ipcMain.handle(
+    'repository-settings:automation-update-selected-actions',
+    async (
+      _event,
+      owner: string,
+      repo: string,
+      githubOwnedAllowed: boolean,
+      verifiedAllowed: boolean,
+      patternsAllowed: string[],
+    ) =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.updateSelectedActions({
+        ...normalizeRepository(owner, repo),
+        githubOwnedAllowed: Boolean(githubOwnedAllowed),
+        verifiedAllowed: Boolean(verifiedAllowed),
+        patternsAllowed: Array.isArray(patternsAllowed)
+          ? patternsAllowed.map((pattern) => String(pattern).trim()).filter(Boolean)
+          : [],
+      })
+  )
+  ipcMain.handle(
+    'repository-settings:automation-update-workflow-permissions',
+    async (_event, owner: string, repo: string, defaultWorkflowPermissions: 'read' | 'write', canApprovePullRequestReviews: boolean) =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.updateWorkflowPermissions({
+        ...normalizeRepository(owner, repo),
+        defaultWorkflowPermissions,
+        canApprovePullRequestReviews: Boolean(canApprovePullRequestReviews),
+      })
+  )
+  ipcMain.handle(
+    'repository-settings:automation-update-access-level',
+    async (_event, owner: string, repo: string, accessLevel: 'none' | 'user' | 'organization') =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.updateAccessLevel({
+        ...normalizeRepository(owner, repo),
+        accessLevel,
+      })
+  )
+  ipcMain.handle(
+    'repository-settings:automation-update-retention',
+    async (_event, owner: string, repo: string, days: number) =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.updateRetention({
+        ...normalizeRepository(owner, repo),
+        days: Number(days),
+      })
+  )
+  ipcMain.handle('repository-settings:automation-runners', async (_event, owner: string, repo: string) =>
+    (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.listRunners(normalizeRepository(owner, repo))
+  )
+  ipcMain.handle(
+    'repository-settings:automation-delete-runner',
+    async (_event, owner: string, repo: string, runnerId: number) =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.deleteRunner({
+        ...normalizeRepository(owner, repo),
+        runnerId: Number(runnerId),
+      })
+  )
+  ipcMain.handle('repository-settings:automation-webhooks', async (_event, owner: string, repo: string) =>
+    (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.listWebhooks(normalizeRepository(owner, repo))
+  )
+  ipcMain.handle(
+    'repository-settings:automation-create-webhook',
+    async (_event, owner: string, repo: string, input: UpsertRepositoryWebhookInput) =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.createWebhook({
+        ...normalizeRepository(owner, repo),
+        input,
+      })
+  )
+  ipcMain.handle(
+    'repository-settings:automation-update-webhook',
+    async (_event, owner: string, repo: string, hookId: number, input: UpsertRepositoryWebhookInput) =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.updateWebhook({
+        ...normalizeRepository(owner, repo),
+        hookId: Number(hookId),
+        input,
+      })
+  )
+  ipcMain.handle(
+    'repository-settings:automation-delete-webhook',
+    async (_event, owner: string, repo: string, hookId: number) =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.deleteWebhook({
+        ...normalizeRepository(owner, repo),
+        hookId: Number(hookId),
+      })
+  )
+  ipcMain.handle(
+    'repository-settings:automation-ping-webhook',
+    async (_event, owner: string, repo: string, hookId: number) =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.pingWebhook({
+        ...normalizeRepository(owner, repo),
+        hookId: Number(hookId),
+      })
+  )
+  ipcMain.handle('repository-settings:automation-environments', async (_event, owner: string, repo: string) =>
+    (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.listEnvironmentSettings(normalizeRepository(owner, repo))
+  )
+  ipcMain.handle(
+    'repository-settings:automation-upsert-environment',
+    async (_event, owner: string, repo: string, environmentName: string, input: UpsertEnvironmentInput) =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.upsertEnvironment({
+        ...normalizeRepository(owner, repo),
+        environmentName: String(environmentName ?? '').trim(),
+        input,
+      })
+  )
+  ipcMain.handle(
+    'repository-settings:automation-delete-environment',
+    async (_event, owner: string, repo: string, environmentName: string) =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.deleteEnvironment({
+        ...normalizeRepository(owner, repo),
+        environmentName: String(environmentName ?? '').trim(),
+      })
+  )
+  ipcMain.handle(
+    'repository-settings:automation-create-environment-branch-policy',
+    async (_event, owner: string, repo: string, environmentName: string, name: string, type: 'branch' | 'tag') =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.createEnvironmentBranchPolicy({
+        ...normalizeRepository(owner, repo),
+        environmentName: String(environmentName ?? '').trim(),
+        name: String(name ?? '').trim(),
+        type,
+      })
+  )
+  ipcMain.handle(
+    'repository-settings:automation-delete-environment-branch-policy',
+    async (_event, owner: string, repo: string, environmentName: string, branchPolicyId: number) =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.deleteEnvironmentBranchPolicy({
+        ...normalizeRepository(owner, repo),
+        environmentName: String(environmentName ?? '').trim(),
+        branchPolicyId: Number(branchPolicyId),
+      })
+  )
+  ipcMain.handle('repository-settings:automation-pages', async (_event, owner: string, repo: string) =>
+    (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.getPagesSettings(normalizeRepository(owner, repo))
+  )
+  ipcMain.handle(
+    'repository-settings:automation-enable-pages',
+    async (_event, owner: string, repo: string, buildType: 'legacy' | 'workflow', sourceBranch?: string, sourcePath?: '/' | '/docs') =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.enablePages({
+        ...normalizeRepository(owner, repo),
+        buildType,
+        sourceBranch,
+        sourcePath,
+      })
+  )
+  ipcMain.handle(
+    'repository-settings:automation-update-pages',
+    async (
+      _event,
+      owner: string,
+      repo: string,
+      input: {
+        cname?: string | null
+        httpsEnforced?: boolean
+        buildType?: 'legacy' | 'workflow'
+        sourceBranch?: string
+        sourcePath?: '/' | '/docs'
+      },
+    ) =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.updatePages({
+        ...normalizeRepository(owner, repo),
+        ...input,
+      })
+  )
+  ipcMain.handle('repository-settings:automation-disable-pages', async (_event, owner: string, repo: string) =>
+    (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.disablePages(normalizeRepository(owner, repo))
+  )
+  ipcMain.handle('repository-settings:automation-request-pages-build', async (_event, owner: string, repo: string) =>
+    (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.requestPagesBuild(normalizeRepository(owner, repo))
+  )
+  ipcMain.handle('repository-settings:automation-custom-properties', async (_event, owner: string, repo: string) =>
+    (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.getCustomPropertyValues(normalizeRepository(owner, repo))
+  )
+  ipcMain.handle(
+    'repository-settings:automation-update-custom-properties',
+    async (_event, owner: string, repo: string, values: GitHubRepositoryCustomPropertyValue[]) =>
+      (await createAuthenticatedGitHubApi()).repositorySettingsAutomation.updateCustomPropertyValues({
+        ...normalizeRepository(owner, repo),
+        values: Array.isArray(values) ? values : [],
+      })
   )
 }
 

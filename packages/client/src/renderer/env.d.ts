@@ -656,6 +656,129 @@ type GitHubRepositoryAccessOverview = {
   teams: GitHubRepositoryTeamAccess[]
 }
 
+type GitHubBranchProtectionSummary = {
+  branch: string
+  requiredReviews: number | null
+  requireCodeOwnerReviews: boolean
+  requiredStatusChecks: string[] | null
+  strictStatusChecks: boolean
+  enforceAdmins: boolean
+  requiredLinearHistory: boolean
+  allowForcePushes: boolean
+  allowDeletions: boolean
+  requiredConversationResolution: boolean
+  lockBranch: boolean
+  requiredSignatures: boolean
+}
+
+type GitHubRulesetEnforcement = 'active' | 'evaluate' | 'disabled'
+
+type GitHubRepositoryRuleset = {
+  id: number
+  name: string
+  target: string
+  enforcement: GitHubRulesetEnforcement
+  rules: string[]
+  refConditions: string[]
+}
+
+type GitHubActionsSelectedActions = {
+  githubOwnedAllowed: boolean
+  verifiedAllowed: boolean
+  patternsAllowed: string[]
+}
+
+type GitHubActionsSettings = {
+  enabled: boolean
+  allowedActions: 'all' | 'local_only' | 'selected' | null
+  shaPinningRequired: boolean | null
+  defaultWorkflowPermissions: 'read' | 'write' | null
+  canApprovePullRequestReviews: boolean | null
+  accessLevel: 'none' | 'user' | 'organization' | null
+  retentionDays: number | null
+  selectedActions: GitHubActionsSelectedActions | null
+}
+
+type GitHubSelfHostedRunner = {
+  id: number
+  name: string
+  os: string
+  status: string
+  busy: boolean
+  labels: string[]
+}
+
+type GitHubRepositoryWebhook = {
+  id: number
+  url: string
+  contentType: string
+  insecureSsl: boolean
+  events: string[]
+  active: boolean
+  lastResponseStatus: string | null
+}
+
+type UpsertRepositoryWebhookInput = {
+  url: string
+  contentType: 'json' | 'form'
+  secret?: string
+  insecureSsl: boolean
+  events: string[]
+  active: boolean
+}
+
+type GitHubEnvironmentReviewer = {
+  type: 'User' | 'Team'
+  id: number
+  name: string
+}
+
+type GitHubEnvironmentBranchPolicyItem = {
+  id: number
+  name: string
+  type: 'branch' | 'tag'
+}
+
+type GitHubEnvironmentSettings = {
+  name: string
+  waitTimer: number
+  preventSelfReview: boolean
+  reviewers: GitHubEnvironmentReviewer[]
+  branchPolicy: 'protected' | 'custom' | 'all'
+  customPolicies: GitHubEnvironmentBranchPolicyItem[]
+}
+
+type UpsertEnvironmentInput = {
+  waitTimer: number
+  preventSelfReview: boolean
+  reviewers: Array<{ type: 'User' | 'Team'; id: number }>
+  branchPolicy: 'protected' | 'custom' | 'all'
+}
+
+type GitHubPagesSettings = {
+  enabled: boolean
+  buildType: 'legacy' | 'workflow' | null
+  sourceBranch: string | null
+  sourcePath: string | null
+  cname: string | null
+  httpsEnforced: boolean
+  url: string | null
+  latestBuildStatus: string | null
+}
+
+type GitHubRepositoryCustomPropertyValue = {
+  propertyName: string
+  value: string | string[] | null
+}
+
+type UpdateRepositoryPagesInput = {
+  cname?: string | null
+  httpsEnforced?: boolean
+  buildType?: 'legacy' | 'workflow'
+  sourceBranch?: string
+  sourcePath?: '/' | '/docs'
+}
+
 type GitHubContributorStatsAuthor = {
   id: number
   login: string
@@ -2216,6 +2339,94 @@ interface Window {
           expiry?: GitHubInteractionLimitExpiry
         ) => Promise<void>
         clearInteractionLimits: (owner: string, repo: string) => Promise<void>
+      }
+      automation: {
+        listProtectedBranches: (owner: string, repo: string) => Promise<GitHubBranchProtectionSummary[]>
+        deleteBranchProtection: (owner: string, repo: string, branch: string) => Promise<void>
+        listRulesets: (owner: string, repo: string) => Promise<GitHubRepositoryRuleset[]>
+        setRulesetEnforcement: (
+          owner: string,
+          repo: string,
+          rulesetId: number,
+          enforcement: GitHubRulesetEnforcement
+        ) => Promise<void>
+        deleteRuleset: (owner: string, repo: string, rulesetId: number) => Promise<void>
+        getActionsSettings: (owner: string, repo: string) => Promise<GitHubActionsSettings>
+        updateActionsPermissions: (
+          owner: string,
+          repo: string,
+          enabled: boolean,
+          allowedActions?: 'all' | 'local_only' | 'selected'
+        ) => Promise<void>
+        updateSelectedActions: (
+          owner: string,
+          repo: string,
+          githubOwnedAllowed: boolean,
+          verifiedAllowed: boolean,
+          patternsAllowed: string[]
+        ) => Promise<void>
+        updateWorkflowPermissions: (
+          owner: string,
+          repo: string,
+          defaultWorkflowPermissions: 'read' | 'write',
+          canApprovePullRequestReviews: boolean
+        ) => Promise<void>
+        updateAccessLevel: (
+          owner: string,
+          repo: string,
+          accessLevel: 'none' | 'user' | 'organization'
+        ) => Promise<void>
+        updateRetention: (owner: string, repo: string, days: number) => Promise<void>
+        listRunners: (owner: string, repo: string) => Promise<GitHubSelfHostedRunner[]>
+        deleteRunner: (owner: string, repo: string, runnerId: number) => Promise<void>
+        listWebhooks: (owner: string, repo: string) => Promise<GitHubRepositoryWebhook[]>
+        createWebhook: (owner: string, repo: string, input: UpsertRepositoryWebhookInput) => Promise<void>
+        updateWebhook: (
+          owner: string,
+          repo: string,
+          hookId: number,
+          input: UpsertRepositoryWebhookInput
+        ) => Promise<void>
+        deleteWebhook: (owner: string, repo: string, hookId: number) => Promise<void>
+        pingWebhook: (owner: string, repo: string, hookId: number) => Promise<void>
+        listEnvironments: (owner: string, repo: string) => Promise<GitHubEnvironmentSettings[]>
+        upsertEnvironment: (
+          owner: string,
+          repo: string,
+          environmentName: string,
+          input: UpsertEnvironmentInput
+        ) => Promise<void>
+        deleteEnvironment: (owner: string, repo: string, environmentName: string) => Promise<void>
+        createEnvironmentBranchPolicy: (
+          owner: string,
+          repo: string,
+          environmentName: string,
+          name: string,
+          type: 'branch' | 'tag'
+        ) => Promise<void>
+        deleteEnvironmentBranchPolicy: (
+          owner: string,
+          repo: string,
+          environmentName: string,
+          branchPolicyId: number
+        ) => Promise<void>
+        getPages: (owner: string, repo: string) => Promise<GitHubPagesSettings>
+        enablePages: (
+          owner: string,
+          repo: string,
+          buildType: 'legacy' | 'workflow',
+          sourceBranch?: string,
+          sourcePath?: '/' | '/docs'
+        ) => Promise<void>
+        updatePages: (owner: string, repo: string, input: UpdateRepositoryPagesInput) => Promise<void>
+        disablePages: (owner: string, repo: string) => Promise<void>
+        requestPagesBuild: (owner: string, repo: string) => Promise<void>
+        getCustomProperties: (owner: string, repo: string) => Promise<GitHubRepositoryCustomPropertyValue[]>
+        updateCustomProperties: (
+          owner: string,
+          repo: string,
+          values: GitHubRepositoryCustomPropertyValue[]
+        ) => Promise<void>
       }
     }
     search: {
