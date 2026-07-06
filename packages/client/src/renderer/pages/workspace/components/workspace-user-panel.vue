@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { LogOut, Palette, Settings, UserCircle } from 'lucide-vue-next'
+import { LogOut, Palette, Settings, UserCircle, UserPlus } from 'lucide-vue-next'
 import {
   Avatar,
   AvatarFallback,
@@ -13,6 +13,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@oh-my-github/ui'
+import { useAuthActions } from '@/composables/use-auth-actions'
+import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps<{
   viewer: AuthViewer | null
@@ -20,7 +22,11 @@ const props = defineProps<{
 
 const router = useRouter()
 const { t } = useI18n()
+const authStore = useAuthStore()
+const { logout: performLogout, switchAccount } = useAuthActions()
 const isLoggingOut = ref(false)
+
+const otherAccounts = computed(() => authStore.otherAccounts)
 
 const displayName = computed(() => props.viewer?.name?.trim() ?? '')
 const username = computed(() => props.viewer?.login ?? '')
@@ -36,11 +42,26 @@ async function logout(): Promise<void> {
 
   isLoggingOut.value = true
   try {
-    await window.ohMyGithub?.auth?.logout?.()
-    await router.replace({ name: 'auth' })
+    await performLogout()
   } finally {
     isLoggingOut.value = false
   }
+}
+
+function onSwitchAccount(accountId: number): void {
+  void switchAccount(accountId)
+}
+
+function addAccount(): void {
+  void router.push({ name: 'auth', query: { add: '1' } })
+}
+
+function accountPrimaryLabel(account: AuthAccountSummary): string {
+  return account.name?.trim() || account.login
+}
+
+function accountFallback(account: AuthAccountSummary): string {
+  return accountPrimaryLabel(account).slice(0, 2).toUpperCase()
 }
 
 function openSettings(tab: 'github-profile' | 'appearance' = 'github-profile'): void {
@@ -111,6 +132,36 @@ function openProfile(): void {
       <DropdownMenuItem @select="openSettings('appearance')">
         <Palette />
         <span>{{ t('workspace.userMenu.appearance') }}</span>
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem
+        v-for="account in otherAccounts"
+        :key="account.id"
+        @select="onSwitchAccount(account.id)"
+      >
+        <Avatar class="size-6">
+          <AvatarImage
+            v-if="account.avatarUrl"
+            :alt="accountPrimaryLabel(account)"
+            :src="account.avatarUrl"
+          />
+          <AvatarFallback class="text-[10px]">
+            {{ accountFallback(account) }}
+          </AvatarFallback>
+        </Avatar>
+        <span class="flex min-w-0 flex-1 flex-col">
+          <span class="truncate">{{ accountPrimaryLabel(account) }}</span>
+          <span
+            v-if="account.name?.trim()"
+            class="truncate text-caption text-muted-foreground"
+          >
+            {{ account.login }}
+          </span>
+        </span>
+      </DropdownMenuItem>
+      <DropdownMenuItem @select="addAccount">
+        <UserPlus />
+        <span>{{ t('workspace.userMenu.addAccount') }}</span>
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem

@@ -2683,6 +2683,7 @@
       "title": "书签"
     },
     "userMenu": {
+      "addAccount": "添加账号",
       "appearance": "外观",
       "logout": "退出登录",
       "profile": "个人资料",

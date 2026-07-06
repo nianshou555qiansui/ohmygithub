@@ -2683,6 +2683,7 @@
       "title": "Bookmarks"
     },
     "userMenu": {
+      "addAccount": "Add Account",
       "appearance": "Appearance",
       "logout": "Log Out",
       "profile": "Profile",
