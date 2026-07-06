@@ -110,7 +110,8 @@ const repositorySidebarCounts = computed(() =>
 )
 const isOverviewLoading = computed(() => overviewQuery.isLoading.value)
 const viewerAdminQuery = useRepositoryViewerAdminQuery(owner, repository, hasRepositoryIdentity)
-const canAdministerRepository = computed(() => viewerAdminQuery.data.value ?? false)
+const canAdministerRepository = computed(() =>
+  viewerAdminQuery.data.value ?? overview.value?.viewerCanAdminister ?? false)
 const hasOverviewError = computed(() => Boolean(overviewQuery.error.value))
 const isStarred = computed(() => viewerState.value?.isStarred ?? false)
 const subscription = computed<GitHubRepositorySubscription>(() => viewerState.value?.subscription ?? 'participating')
