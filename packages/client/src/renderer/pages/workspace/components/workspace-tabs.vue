@@ -449,7 +449,10 @@ watch(
 
       <div class="mx-1 h-4 w-px shrink-0 bg-border" />
 
-      <div class="workspace-tabs-scroll-frame min-w-0 flex-1">
+      <div
+        class="workspace-tabs-scroll-frame min-w-0 flex-1"
+        :data-overflowing="hasTabOverflow ? 'true' : undefined"
+      >
         <div
           ref="scrollHost"
           class="workspace-tabs-scroll overflow-x-auto"
@@ -586,6 +589,32 @@ watch(
 .workspace-tabs-bar :deep([data-slot="tabs-list"]),
 .workspace-tab-chip {
   -webkit-app-region: no-drag;
+}
+
+/*
+ * Chromium collects app-region rects from UNCLIPPED absolute bounds
+ * (electron/electron#40610): once the tab strip scrolls, the no-drag rect of
+ * the scrolled tabs list extends `scrollLeft` px past the frame's left edge
+ * and carves the titlebar drag strip above the sidebar out of the window's
+ * draggable region. While the strip overflows, hoist the single no-drag onto
+ * the static (never-scrolled) frame and strip app-region from everything the
+ * scroller moves. While it fits, keep the per-element rects so the empty bar
+ * to the right of the last tab stays a window-drag surface.
+ */
+.workspace-tabs-scroll-frame[data-overflowing="true"] {
+  -webkit-app-region: no-drag;
+}
+
+/*
+ * `initial`, NOT `none`: Blink parses `app-region: none` but applies every
+ * specified value other than `drag` as no-drag, so `none` would still emit
+ * the runaway rects. Only initial/unset restore the no-region default.
+ */
+.workspace-tabs-scroll-frame[data-overflowing="true"] :deep(button),
+.workspace-tabs-scroll-frame[data-overflowing="true"] :deep([role="tab"]),
+.workspace-tabs-scroll-frame[data-overflowing="true"] :deep([data-slot="tabs-list"]),
+.workspace-tabs-scroll-frame[data-overflowing="true"] .workspace-tab-chip {
+  -webkit-app-region: initial;
 }
 
 [data-workspace-tabs] :deep([data-slot="tabs-list"]) {
