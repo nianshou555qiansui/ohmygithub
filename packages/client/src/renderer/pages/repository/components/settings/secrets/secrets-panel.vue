@@ -25,6 +25,9 @@ import {
   useRepositoryVariablesQuery,
 } from '@/composables/github/use-repository-settings'
 import { useToast } from '@/composables/use-toast'
+import EnvDraftRows from './env-draft-rows.vue'
+import { createEnvDraft, type EnvDraft } from './env-drafts'
+import type { EnvEntry } from './parse-env-entries'
 
 const props = defineProps<{
   owner: string
@@ -46,9 +49,13 @@ const showVariables = computed(() => props.scope === 'actions')
 const variablesQuery = useRepositoryVariablesQuery(() => props.owner, () => props.repo, showVariables)
 const variables = computed(() => variablesQuery.data.value ?? [])
 
+const secretDrafts = ref<EnvDraft[]>([])
+const variableDrafts = ref<EnvDraft[]>([])
+const isSavingSecretDrafts = ref(false)
+const isSavingVariableDrafts = ref(false)
+
 const isSecretDialogOpen = ref(false)
 const secretName = ref('')
-const secretNameLocked = ref(false)
 const secretValue = ref('')
 const isSavingSecret = ref(false)
 const secretError = ref<string | null>(null)
@@ -56,17 +63,20 @@ const secretError = ref<string | null>(null)
 const isVariableDialogOpen = ref(false)
 const variableName = ref('')
 const variableValue = ref('')
-const editingVariable = ref<string | null>(null)
 const isSavingVariable = ref(false)
 const variableError = ref<string | null>(null)
 
 const pending = ref(new Set<string>())
 
+watch(() => props.scope, () => {
+  secretDrafts.value = []
+  variableDrafts.value = []
+})
+
 watch(isSecretDialogOpen, (open) => {
   if (!open) {
     secretName.value = ''
     secretValue.value = ''
-    secretNameLocked.value = false
     secretError.value = null
   }
 })
@@ -75,29 +85,131 @@ watch(isVariableDialogOpen, (open) => {
   if (!open) {
     variableName.value = ''
     variableValue.value = ''
-    editingVariable.value = null
     variableError.value = null
   }
 })
 
-function openNewSecret(): void {
-  secretName.value = ''
-  secretValue.value = ''
-  secretNameLocked.value = false
-  secretError.value = null
-  isSecretDialogOpen.value = true
+function addSecretDraft(): void {
+  secretDrafts.value.push(createEnvDraft())
+}
+
+function addVariableDraft(): void {
+  variableDrafts.value.push(createEnvDraft())
+}
+
+function setDraftName(drafts: EnvDraft[], id: number, name: string): void {
+  const draft = drafts.find((item) => item.id === id)
+  if (!draft) return
+  draft.name = name
+  draft.error = null
+}
+
+function setDraftValue(drafts: EnvDraft[], id: number, value: string): void {
+  const draft = drafts.find((item) => item.id === id)
+  if (!draft) return
+  draft.value = value
+  draft.error = null
+}
+
+function removeDraft(drafts: EnvDraft[], id: number): void {
+  const index = drafts.findIndex((draft) => draft.id === id)
+  if (index !== -1) drafts.splice(index, 1)
+}
+
+function insertEntries(drafts: EnvDraft[], id: number, entries: EnvEntry[]): void {
+  const index = drafts.findIndex((draft) => draft.id === id)
+  if (index === -1 || entries.length === 0) return
+
+  const [first, ...rest] = entries
+  const target = drafts[index]
+  target.name = first.name
+  target.value = first.value
+  target.error = null
+  drafts.splice(index + 1, 0, ...rest.map((entry) => createEnvDraft(entry)))
+}
+
+async function saveSecretDrafts(): Promise<void> {
+  if (isSavingSecretDrafts.value) return
+  isSavingSecretDrafts.value = true
+  let savedCount = 0
+  let lastSavedName = ''
+
+  try {
+    for (const draft of [...secretDrafts.value]) {
+      const name = draft.name.trim().toUpperCase()
+      if (!name) {
+        draft.error = t('repository.settings.secrets.draftNeedsName')
+        continue
+      }
+      if (!draft.value) {
+        draft.error = t('repository.settings.secrets.draftNeedsValue')
+        continue
+      }
+
+      try {
+        await upsertRepositorySecret(props.owner, props.repo, props.scope, name, draft.value)
+        savedCount += 1
+        lastSavedName = name
+        removeDraft(secretDrafts.value, draft.id)
+      } catch (error) {
+        draft.error = error instanceof Error ? error.message : t('repository.settings.secrets.error')
+      }
+    }
+  } finally {
+    isSavingSecretDrafts.value = false
+    if (savedCount > 0) {
+      invalidateSecrets(props.scope, props.owner, props.repo)
+      toast.success(savedCount === 1
+        ? t('repository.settings.secrets.saved', { name: lastSavedName })
+        : t('repository.settings.secrets.savedMany', { count: savedCount }))
+    }
+  }
+}
+
+async function saveVariableDrafts(): Promise<void> {
+  if (isSavingVariableDrafts.value) return
+  isSavingVariableDrafts.value = true
+  const existingNames = new Set(variables.value.map((variable) => variable.name.toUpperCase()))
+  let savedCount = 0
+
+  try {
+    for (const draft of [...variableDrafts.value]) {
+      const name = draft.name.trim().toUpperCase()
+      if (!name) {
+        draft.error = t('repository.settings.secrets.draftNeedsName')
+        continue
+      }
+
+      try {
+        if (existingNames.has(name)) {
+          await updateRepositoryVariable(props.owner, props.repo, name, draft.value)
+        } else {
+          await createRepositoryVariable(props.owner, props.repo, name, draft.value)
+          existingNames.add(name)
+        }
+        savedCount += 1
+        removeDraft(variableDrafts.value, draft.id)
+      } catch (error) {
+        draft.error = error instanceof Error ? error.message : t('repository.settings.secrets.error')
+      }
+    }
+  } finally {
+    isSavingVariableDrafts.value = false
+    if (savedCount > 0) {
+      invalidateSecurity('variables', props.owner, props.repo)
+    }
+  }
 }
 
 function openEditSecret(name: string): void {
   secretName.value = name
-  secretNameLocked.value = true
   secretValue.value = ''
   secretError.value = null
   isSecretDialogOpen.value = true
 }
 
 async function saveSecret(): Promise<void> {
-  const name = secretName.value.trim().toUpperCase()
+  const name = secretName.value
   if (!name || !secretValue.value || isSavingSecret.value) return
   isSavingSecret.value = true
   secretError.value = null
@@ -131,16 +243,7 @@ async function removeSecret(name: string): Promise<void> {
   }
 }
 
-function openNewVariable(): void {
-  editingVariable.value = null
-  variableName.value = ''
-  variableValue.value = ''
-  variableError.value = null
-  isVariableDialogOpen.value = true
-}
-
 function openEditVariable(variable: GitHubRepositoryVariable): void {
-  editingVariable.value = variable.name
   variableName.value = variable.name
   variableValue.value = variable.value
   variableError.value = null
@@ -148,17 +251,12 @@ function openEditVariable(variable: GitHubRepositoryVariable): void {
 }
 
 async function saveVariable(): Promise<void> {
-  const name = variableName.value.trim().toUpperCase()
-  if (!name || isSavingVariable.value) return
+  if (!variableName.value || isSavingVariable.value) return
   isSavingVariable.value = true
   variableError.value = null
 
   try {
-    if (editingVariable.value) {
-      await updateRepositoryVariable(props.owner, props.repo, editingVariable.value, variableValue.value)
-    } else {
-      await createRepositoryVariable(props.owner, props.repo, name, variableValue.value)
-    }
+    await updateRepositoryVariable(props.owner, props.repo, variableName.value, variableValue.value)
     isVariableDialogOpen.value = false
     invalidateSecurity('variables', props.owner, props.repo)
   } catch (error) {
@@ -188,17 +286,47 @@ async function removeVariable(name: string): Promise<void> {
 
 <template>
   <div class="space-y-8">
+    <p class="px-2 text-caption text-muted-foreground">
+      {{ t('repository.settings.secrets.envHint') }}
+    </p>
+
     <SettingsSection :title="t('repository.settings.secrets.secretsTitle')">
       <template #actions>
-        <Button
-          size="sm"
-          type="button"
-          variant="outline"
-          @click="openNewSecret"
-        >
-          <Plus class="size-4" />
-          {{ t('repository.settings.secrets.save') }}
-        </Button>
+        <div class="flex items-center gap-2">
+          <template v-if="secretDrafts.length > 0">
+            <Button
+              :aria-label="t('repository.settings.secrets.addSecret')"
+              size="icon-sm"
+              type="button"
+              variant="ghost"
+              @click="addSecretDraft"
+            >
+              <Plus class="size-4" />
+            </Button>
+            <Button
+              :disabled="isSavingSecretDrafts"
+              size="sm"
+              type="button"
+              @click="saveSecretDrafts"
+            >
+              <Spinner
+                v-if="isSavingSecretDrafts"
+                class="size-3.5"
+              />
+              {{ t('repository.settings.secrets.saveAll') }}
+            </Button>
+          </template>
+          <Button
+            v-else
+            size="sm"
+            type="button"
+            variant="outline"
+            @click="addSecretDraft"
+          >
+            <Plus class="size-4" />
+            {{ t('repository.settings.secrets.addSecret') }}
+          </Button>
+        </div>
       </template>
 
       <div
@@ -212,8 +340,20 @@ async function removeVariable(name: string): Promise<void> {
         v-else
         class="divide-y divide-border"
       >
+        <EnvDraftRows
+          :drafts="secretDrafts"
+          mask-values
+          :name-placeholder="t('repository.settings.secrets.namePlaceholder')"
+          :remove-label="t('repository.settings.secrets.removeDraft')"
+          :value-placeholder="t('repository.settings.secrets.valuePlaceholder')"
+          @paste-entries="(id, entries) => insertEntries(secretDrafts, id, entries)"
+          @remove="(id) => removeDraft(secretDrafts, id)"
+          @update:name="(id, name) => setDraftName(secretDrafts, id, name)"
+          @update:value="(id, value) => setDraftValue(secretDrafts, id, value)"
+        />
+
         <p
-          v-if="secrets.length === 0"
+          v-if="secrets.length === 0 && secretDrafts.length === 0"
           class="px-4 py-6 text-center text-body text-muted-foreground"
         >
           {{ t('repository.settings.secrets.empty') }}
@@ -261,20 +401,57 @@ async function removeVariable(name: string): Promise<void> {
       :title="t('repository.settings.secrets.variablesTitle')"
     >
       <template #actions>
-        <Button
-          size="sm"
-          type="button"
-          variant="outline"
-          @click="openNewVariable"
-        >
-          <Plus class="size-4" />
-          {{ t('repository.settings.secrets.addVariable') }}
-        </Button>
+        <div class="flex items-center gap-2">
+          <template v-if="variableDrafts.length > 0">
+            <Button
+              :aria-label="t('repository.settings.secrets.addVariable')"
+              size="icon-sm"
+              type="button"
+              variant="ghost"
+              @click="addVariableDraft"
+            >
+              <Plus class="size-4" />
+            </Button>
+            <Button
+              :disabled="isSavingVariableDrafts"
+              size="sm"
+              type="button"
+              @click="saveVariableDrafts"
+            >
+              <Spinner
+                v-if="isSavingVariableDrafts"
+                class="size-3.5"
+              />
+              {{ t('repository.settings.secrets.saveAll') }}
+            </Button>
+          </template>
+          <Button
+            v-else
+            size="sm"
+            type="button"
+            variant="outline"
+            @click="addVariableDraft"
+          >
+            <Plus class="size-4" />
+            {{ t('repository.settings.secrets.addVariable') }}
+          </Button>
+        </div>
       </template>
 
       <div class="divide-y divide-border">
+        <EnvDraftRows
+          :drafts="variableDrafts"
+          :name-placeholder="t('repository.settings.secrets.namePlaceholder')"
+          :remove-label="t('repository.settings.secrets.removeDraft')"
+          :value-placeholder="t('repository.settings.secrets.variableValuePlaceholder')"
+          @paste-entries="(id, entries) => insertEntries(variableDrafts, id, entries)"
+          @remove="(id) => removeDraft(variableDrafts, id)"
+          @update:name="(id, name) => setDraftName(variableDrafts, id, name)"
+          @update:value="(id, value) => setDraftValue(variableDrafts, id, value)"
+        />
+
         <p
-          v-if="variables.length === 0"
+          v-if="variables.length === 0 && variableDrafts.length === 0"
           class="px-4 py-6 text-center text-body text-muted-foreground"
         >
           {{ t('repository.settings.secrets.variablesEmpty') }}
@@ -315,11 +492,7 @@ async function removeVariable(name: string): Promise<void> {
     <Dialog v-model:open="isSecretDialogOpen">
       <DialogContent class="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>
-            {{ t(secretNameLocked
-              ? 'repository.settings.secrets.update'
-              : 'repository.settings.secrets.save') }}
-          </DialogTitle>
+          <DialogTitle>{{ t('repository.settings.secrets.update') }}</DialogTitle>
         </DialogHeader>
 
         <div class="grid gap-3">
@@ -330,7 +503,7 @@ async function removeVariable(name: string): Promise<void> {
               v-model="secretName"
               autocomplete="off"
               class="font-mono uppercase"
-              :disabled="secretNameLocked"
+              disabled
               spellcheck="false"
             />
           </div>
@@ -364,7 +537,7 @@ async function removeVariable(name: string): Promise<void> {
             {{ t('repository.settings.general.dangerZone.cancel') }}
           </Button>
           <Button
-            :disabled="isSavingSecret || !secretName.trim() || !secretValue"
+            :disabled="isSavingSecret || !secretValue"
             size="sm"
             type="button"
             @click="saveSecret"
@@ -373,7 +546,7 @@ async function removeVariable(name: string): Promise<void> {
               v-if="isSavingSecret"
               class="size-3.5"
             />
-            {{ t('repository.settings.secrets.save') }}
+            {{ t('repository.settings.secrets.update') }}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -382,11 +555,7 @@ async function removeVariable(name: string): Promise<void> {
     <Dialog v-model:open="isVariableDialogOpen">
       <DialogContent class="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>
-            {{ t(editingVariable
-              ? 'repository.settings.secrets.updateVariable'
-              : 'repository.settings.secrets.addVariable') }}
-          </DialogTitle>
+          <DialogTitle>{{ t('repository.settings.secrets.updateVariable') }}</DialogTitle>
         </DialogHeader>
 
         <div class="grid gap-3">
@@ -397,7 +566,7 @@ async function removeVariable(name: string): Promise<void> {
               v-model="variableName"
               autocomplete="off"
               class="font-mono uppercase"
-              :disabled="editingVariable !== null"
+              disabled
               spellcheck="false"
             />
           </div>
@@ -430,7 +599,7 @@ async function removeVariable(name: string): Promise<void> {
             {{ t('repository.settings.general.dangerZone.cancel') }}
           </Button>
           <Button
-            :disabled="isSavingVariable || !variableName.trim()"
+            :disabled="isSavingVariable"
             size="sm"
             type="button"
             @click="saveVariable"
@@ -439,9 +608,7 @@ async function removeVariable(name: string): Promise<void> {
               v-if="isSavingVariable"
               class="size-3.5"
             />
-            {{ t(editingVariable
-              ? 'repository.settings.secrets.updateVariable'
-              : 'repository.settings.secrets.addVariable') }}
+            {{ t('repository.settings.secrets.updateVariable') }}
           </Button>
         </DialogFooter>
       </DialogContent>
