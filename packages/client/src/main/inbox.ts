@@ -1,4 +1,4 @@
-import { createGitHubApi, type ListNotificationsOptions } from '@oh-my-github/api'
+import { createGitHubApi, type GitHubNotification, type ListNotificationsOptions } from '@oh-my-github/api'
 import { ipcMain } from 'electron'
 import { getAuthenticatedAccessToken } from './auth'
 import { resolveGitHubProxyUrl } from './proxy'
@@ -43,4 +43,16 @@ async function createAuthenticatedGitHubApi() {
     token: getAuthenticatedAccessToken(),
     proxyUrl: await resolveGitHubProxyUrl(),
   })
+}
+
+export async function listRecentNotifications(limit: number): Promise<GitHubNotification[]> {
+  try {
+    const api = await createAuthenticatedGitHubApi()
+    const notifications = await api.inbox.listInboxNotifications({ limit })
+    return notifications.slice(0, limit)
+  } catch {
+    // Unauthenticated or network/API failure: the tray shows its placeholder row
+    // rather than surfacing an error. Never throw from here.
+    return []
+  }
 }

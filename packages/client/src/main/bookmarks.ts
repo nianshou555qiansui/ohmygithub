@@ -44,7 +44,7 @@ export interface StoredWorkspaceBookmarksInfo {
   bookmarks: StoredWorkspaceBookmarks
 }
 
-const bookmarksPath = join(homedir(), '.oh-my-github', 'bookmarks.json')
+export const bookmarksFilePath = join(homedir(), '.oh-my-github', 'bookmarks.json')
 
 export function registerBookmarksIpc(): void {
   ipcMain.handle('bookmarks:get', () => readBookmarksInfo())
@@ -53,7 +53,7 @@ export function registerBookmarksIpc(): void {
     writeBookmarks(bookmarks)
 
     return {
-      path: bookmarksPath,
+      path: bookmarksFilePath,
       hasContent: hasBookmarksContent(bookmarks),
       bookmarks
     }
@@ -64,15 +64,15 @@ function readBookmarksInfo(): StoredWorkspaceBookmarksInfo {
   const bookmarks = readBookmarks()
 
   return {
-    path: bookmarksPath,
+    path: bookmarksFilePath,
     hasContent: hasBookmarksContent(bookmarks),
     bookmarks
   }
 }
 
-function readBookmarks(): StoredWorkspaceBookmarks {
+export function readBookmarks(): StoredWorkspaceBookmarks {
   try {
-    const raw = readFileSync(bookmarksPath, 'utf8')
+    const raw = readFileSync(bookmarksFilePath, 'utf8')
     if (!raw.trim()) {
       const bookmarks = defaultBookmarks()
       writeBookmarks(bookmarks)
@@ -92,8 +92,8 @@ function readBookmarks(): StoredWorkspaceBookmarks {
 }
 
 function writeBookmarks(bookmarks: StoredWorkspaceBookmarks): void {
-  mkdirSync(dirname(bookmarksPath), { recursive: true })
-  writeFileSync(bookmarksPath, `${JSON.stringify(bookmarks, null, 2)}\n`, 'utf8')
+  mkdirSync(dirname(bookmarksFilePath), { recursive: true })
+  writeFileSync(bookmarksFilePath, `${JSON.stringify(bookmarks, null, 2)}\n`, 'utf8')
 }
 
 function normalizeBookmarks(value: unknown): StoredWorkspaceBookmarks {
