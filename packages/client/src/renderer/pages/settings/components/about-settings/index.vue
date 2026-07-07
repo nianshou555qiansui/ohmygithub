@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Download, MessageSquare, RefreshCw, RotateCcw } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
-import { Button } from '@oh-my-github/ui'
+import { Button, Spinner } from '@oh-my-github/ui'
 import TelegramIcon from '@/components/icons/telegram-icon.vue'
 import { getShortcutPlatform } from '@/keyboard/shortcut-accelerator'
 import liquidLogo from '../../../../../../../../assets/liquid-glass-icon.png'
@@ -129,10 +129,14 @@ function openFeedback(): void {
           loading-mode="manual"
           @click="safeHandleUpdateButtonClick"
         >
+          <Spinner
+            v-if="updateButtonState.loading"
+            class="size-4"
+          />
           <component
             :is="updateButtonIcon"
+            v-else
             class="size-4"
-            :class="updateButtonState.loading ? 'animate-spin' : undefined"
           />
           {{ updateButtonLabel }}
         </Button>

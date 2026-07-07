@@ -701,7 +701,9 @@ Pick the mode by what the slot renders **while busy**:
   yourself:** `<Spinner v-if="isBusy" class="size-3.5" /> <Icon v-else class="size-3.5" />`.
   `manual` tells the Button to draw *no* spinner of its own; you replace the icon in
   place so it becomes the spinner and comes back when done. This is the house pattern —
-  copy `action-run-header.vue` / `auth-page.vue`.
+  copy `action-run-header.vue` / `auth-page.vue`. **Do the swap — don't fake it by
+  spinning the icon** (`:class="loading ? 'animate-spin'"`): a rotating download / refresh
+  glyph is not a spinner (the About update button shipped exactly that).
 - **Text-only button → `loading-mode="leading"` is correct.** There is no icon to
   double up with; the spinner just grows in before the label (PR review
   Comment/Approve, the merge-confirm dialog button).
