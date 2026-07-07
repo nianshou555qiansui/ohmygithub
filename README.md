@@ -1,94 +1,47 @@
-# Oh My GitHub
+<div align="right">
+  <span>[<a href="./README.md">English</a>]<span>
+  </span>[<a href="./README_CN.md">简体中文</a>]</span>
+</div>  
 
-Oh My GitHub is an Electron desktop workspace for GitHub notifications, pull requests, issues, and actions.
+<div align="center">
 
-This first scaffold focuses on a fast Notion-like app shell with mock GitHub data. Real OAuth, API sync, and local persistence are intentionally left as follow-up layers.
+<img src="assets/logo.png" width="120" alt="Oh My GitHub logo" />
 
-## Stack
+<h1>Oh My GitHub</h1>
 
-- TypeScript
-- Vue 3
-- Vite
-- Electron
-- electron-vite
-- Reka UI
-- pnpm workspaces
+<p><em>An unofficial GitHub Desktop powering your work.</em></p>
 
-## Packages
+<p>
+  <a href="https://oh-my-github.app/">
+    <img src="https://img.shields.io/badge/Download-Oh%20My%20GitHub-111111?style=for-the-badge&logo=github&logoColor=white" alt="Download" />
+  </a>
+  &nbsp;
+  <a href="https://t.me/ohmygithub">
+    <img src="https://img.shields.io/badge/Telegram-Join-26A5E4?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram" />
+  </a>
+</p>
 
-- `packages/ui` - shared Vue UI primitives built around Reka UI and app theme styles.
-- `packages/api` - GitHub API contracts plus a mock client.
-- `packages/client` - Electron main, preload, and Vue renderer app.
+</div>
 
-## Scripts
+## About
 
-```sh
-pnpm run env:setup
-pnpm dev
-pnpm typecheck
-pnpm build
-pnpm package
-pnpm package:mac
-pnpm package:win
-```
+Oh My GitHub is a modern, minimalist desktop app for GitHub. Every entry point
+lives in the sidebar, so you can move between notifications, pull requests,
+reviews, issues, and actions seamlessly — no constant page reloads, no piling up
+browser tabs.
 
-`pnpm run env:setup` installs workspace dependencies and explicitly downloads the Electron binary. The
-project pins `electron_mirror` in `.npmrc` so Electron installs reliably in local development.
+- **Unified sidebar** — every workflow in one place.
+- **Seamless flow** — switch between features without a reload.
+- **Fast & native** — a snappy desktop shell that stays out of your way.
+- **Cross-platform** — runs on macOS, Windows, and Linux.
 
-`pnpm package` builds an installable Electron package with `electron-builder`. Platform-specific
-installers are available through `pnpm package:mac` for `.dmg`/`.zip` and `pnpm package:win` for a
-Windows NSIS `.exe` installer. Release artifacts are written under `packages/client/release/`.
+## Download
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md) for environment variables, the CI/CD workflows, how to
-cut a release, and code-signing setup.
+Grab the latest build for your platform from the
+[**download page**](https://oh-my-github.app/).
 
-## Developer Debugging
+## Feedback
 
-The Electron renderer can expose a local Chrome DevTools Protocol endpoint in development builds.
-Set `OH_MY_GITHUB_CDP_PORT` before starting the app:
-
-```powershell
-$env:OH_MY_GITHUB_CDP_PORT = '9222'
-pnpm dev
-```
-
-The endpoint binds to `127.0.0.1` only and is disabled unless the environment variable is set.
-You can confirm it is available with:
-
-```powershell
-Invoke-RestMethod http://127.0.0.1:9222/json/version
-```
-
-For `chrome-devtools-mcp`, connect to this Electron endpoint with `--browserUrl`:
-
-```toml
-[mcp_servers.chrome-devtools]
-command = "npx"
-args = ["chrome-devtools-mcp@latest", "--browserUrl", "http://127.0.0.1:9222"]
-```
-
-## Network Proxy
-
-GitHub requests use this proxy priority:
-
-1. `~/.oh-my-github/config.json` `network.proxyUrl`
-2. `HTTPS_PROXY` / `HTTP_PROXY` / `ALL_PROXY` environment variables
-3. The operating system proxy resolved by Electron
-
-Example local config:
-
-```json
-{
-  "schemaVersion": 1,
-  "github": {
-    "activeAccountLogin": null
-  },
-  "network": {
-    "proxyUrl": "http://127.0.0.1:7890"
-  },
-  "ui": {
-    "locale": "en",
-    "theme": "auto"
-  }
-}
-```
+This repository is the home for **issues and feedback**. Found a bug or have an
+idea? [Open an issue](https://github.com/ohmygit-hub/ohmygithub/issues) or join
+the conversation on [Telegram](https://t.me/ohmygithub).
