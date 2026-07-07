@@ -1,6 +1,7 @@
 {
   "brand": "Oh My GitHub",
   "nav": {
+    "github": "GitHub",
     "telegram": "Telegram",
     "language": "Language",
     "toggleTheme": "Toggle theme"

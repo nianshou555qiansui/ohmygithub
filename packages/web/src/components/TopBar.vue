@@ -9,10 +9,11 @@ import {
 import { Check, Languages, Moon, Sun } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 import logo from '@/assets/shadow-icon.svg'
+import GitHubIcon from '@/components/icons/GitHubIcon.vue'
 import TelegramIcon from '@/components/icons/TelegramIcon.vue'
 import { useTheme } from '@/composables/useTheme'
 import { setLocale, type SupportedLocale } from '@/i18n'
-import { TELEGRAM_URL } from '@/lib/site'
+import { GITHUB_URL, TELEGRAM_URL } from '@/lib/site'
 
 const { t, locale } = useI18n()
 const { isDark, toggle } = useTheme()
@@ -34,6 +35,17 @@ const languages: { value: SupportedLocale, label: string }[] = [
       </a>
 
       <div class="flex items-center gap-1">
+        <Button
+          as="a"
+          :href="GITHUB_URL"
+          target="_blank"
+          rel="noreferrer"
+          variant="ghost"
+          size="icon"
+          :aria-label="t('nav.github')"
+        >
+          <GitHubIcon class="size-4" />
+        </Button>
         <Button
           v-if="TELEGRAM_URL"
           as="a"
