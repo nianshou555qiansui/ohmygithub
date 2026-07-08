@@ -1,65 +1,69 @@
-import { ref } from 'vue'
+import type { MaybeRefOrGetter, Ref } from 'vue'
+import { ref, toValue, watch } from 'vue'
 
-const LEGACY_STORAGE_KEY = 'oh-my-github:workspace-pinned-organizations:v1'
-const STORAGE_VERSION = 1
-
-export function usePinnedOrganizations() {
+/**
+ * Pinned workspace sidebar organizations persisted to
+ * ~/.oh-my-github/pins.json through the pins bridge, keyed by the
+ * signed-in account login so each account keeps its own pin list.
+ */
+export function usePinnedOrganizations(login: MaybeRefOrGetter<string | null | undefined>): {
+  pinnedOrganizationLogins: Ref<string[]>
+  toggleOrganizationPin: (organizationLogin: string) => void
+} {
   const pinnedOrganizationLogins = ref<string[]>([])
-  let hasLocalChanges = false
+  let restoreToken = 0
   let persistQueue: Promise<void> = Promise.resolve()
 
-  void restorePins()
+  watch(
+    () => normalizeLogin(toValue(login)),
+    (normalizedLogin) => {
+      pinnedOrganizationLogins.value = []
+      if (!normalizedLogin) return
 
-  function toggleOrganizationPin(login: string): void {
-    const isPinned = pinnedOrganizationLogins.value.includes(login)
+      void restore(normalizedLogin)
+    },
+    { immediate: true },
+  )
+
+  function toggleOrganizationPin(organizationLogin: string): void {
+    const normalizedLogin = normalizeLogin(toValue(login))
+    if (!normalizedLogin) return
+
+    const current = pinnedOrganizationLogins.value
+    const isPinned = current.includes(organizationLogin)
     pinnedOrganizationLogins.value = isPinned
-      ? pinnedOrganizationLogins.value.filter((item) => item !== login)
-      : [login, ...pinnedOrganizationLogins.value.filter((item) => item !== login)]
+      ? current.filter((item) => item !== organizationLogin)
+      : [organizationLogin, ...current.filter((item) => item !== organizationLogin)]
 
-    persist()
+    persist(normalizedLogin, pinnedOrganizationLogins.value)
   }
 
-  async function restorePins(): Promise<void> {
+  async function restore(normalizedLogin: string): Promise<void> {
+    const token = ++restoreToken
+
     try {
-      const pinsBridge = window.ohMyGithub?.pins
-      const info = await pinsBridge?.get?.()
+      const info = await window.ohMyGithub?.pins?.get?.()
+      if (token !== restoreToken) return
 
-      if (info?.hasContent) {
-        applyRestoredLogins(coerceStoredLogins(info.pins))
-        return
-      }
-
-      const legacyLogins = readLegacyStoredLogins()
-      if (legacyLogins.length > 0) {
-        applyRestoredLogins(legacyLogins)
-        try {
-          await persistPins(legacyLogins)
-          localStorage.removeItem(LEGACY_STORAGE_KEY)
-        } catch (error) {
-          console.error('Failed to migrate pinned organizations', error)
-        }
-        return
-      }
-
-      applyRestoredLogins(coerceStoredLogins(info?.pins))
-    } catch {
-      applyRestoredLogins(readLegacyStoredLogins())
+      pinnedOrganizationLogins.value = info?.pins?.organizations?.[normalizedLogin] ?? []
+    } catch (error) {
+      console.error('Failed to restore pinned organizations', error)
     }
   }
 
-  function applyRestoredLogins(logins: string[]): void {
-    if (hasLocalChanges) return
-
-    pinnedOrganizationLogins.value = logins
-  }
-
-  function persist(): void {
-    hasLocalChanges = true
-    const logins = [...pinnedOrganizationLogins.value]
-
+  function persist(normalizedLogin: string, organizations: string[]): void {
+    // Invalidate in-flight restores so a stale read can't clobber the toggle.
+    restoreToken += 1
     persistQueue = persistQueue
       .catch(() => undefined)
-      .then(() => persistPins(logins))
+      .then(async () => {
+        const pinsBridge = window.ohMyGithub?.pins
+        if (!pinsBridge?.setOrganizationPins) {
+          throw new Error('Pins bridge is unavailable')
+        }
+
+        await pinsBridge.setOrganizationPins({ login: normalizedLogin, organizations })
+      })
       .catch((error) => {
         console.error('Failed to persist pinned organizations', error)
       })
@@ -71,31 +75,6 @@ export function usePinnedOrganizations() {
   }
 }
 
-async function persistPins(logins: string[]): Promise<void> {
-  const pinsBridge = window.ohMyGithub?.pins
-  if (!pinsBridge) {
-    throw new Error('Pins bridge is not available')
-  }
-
-  await pinsBridge.update({ version: STORAGE_VERSION, organizations: logins })
-}
-
-function readLegacyStoredLogins(): string[] {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY) ?? '[]') as unknown
-    if (!Array.isArray(parsed)) return []
-
-    return parsed.filter((login): login is string => typeof login === 'string' && login.trim().length > 0)
-  } catch {
-    return []
-  }
-}
-
-function coerceStoredLogins(value: unknown): string[] {
-  if (typeof value !== 'object' || value === null) return []
-
-  const organizations = (value as { organizations?: unknown }).organizations
-  if (!Array.isArray(organizations)) return []
-
-  return organizations.filter((login): login is string => typeof login === 'string' && login.trim().length > 0)
+function normalizeLogin(value: string | null | undefined): string {
+  return value?.trim().toLowerCase() ?? ''
 }

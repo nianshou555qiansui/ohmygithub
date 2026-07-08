@@ -8,7 +8,9 @@ export const MAX_REPOSITORY_PINS = 6
 
 export interface StoredPins {
   version: 1
-  organizations: string[]
+  /* Pinned workspace sidebar organizations, keyed by lowercase account
+     login so each signed-in account keeps its own pin list. */
+  organizations: Record<string, string[]>
   /* Viewer-chosen profile pins, keyed by lowercase account login. Full
      repository snapshots so the overview can render them without extra
      API calls; refreshed whenever the selection is saved. */
@@ -25,12 +27,24 @@ export const pinsFilePath = join(homedir(), '.oh-my-github', 'pins.json')
 
 export function registerPinsIpc(): void {
   ipcMain.handle('pins:get', () => readPinsInfo())
-  // Merge the payload over the stored file: the organizations writer only
-  // sends its own field, and a whole-file overwrite would drop the
-  // repository pins saved by the handler below (and vice versa).
-  ipcMain.handle('pins:update', (_event, payload: unknown) => {
+  // Both writers merge one login's slice into the stored file instead of
+  // overwriting the whole file, so they can't drop each other's data.
+  ipcMain.handle('pins:set-organization-pins', (_event, payload: unknown) => {
+    const input = payload as Partial<{ login: string; organizations: unknown }>
+    const login = String(input?.login ?? '').trim().toLowerCase()
+
+    if (!login) {
+      throw new Error('Account login is required')
+    }
+
     const current = readPins()
-    const pins = normalizePins(isRecord(payload) ? { ...current, ...payload } : current)
+    const pins = normalizePins({
+      ...current,
+      organizations: {
+        ...current.organizations,
+        [login]: Array.isArray(input?.organizations) ? input.organizations : []
+      }
+    })
     writePins(pins)
 
     return {
@@ -39,8 +53,6 @@ export function registerPinsIpc(): void {
       pins
     }
   })
-  // Merges one login's repository pins into the stored file instead of
-  // overwriting it, so it can't race the organizations writer above.
   ipcMain.handle('pins:set-repository-pins', (_event, payload: unknown) => {
     const input = payload as Partial<{ login: string; repositories: unknown }>
     const login = String(input?.login ?? '').trim().toLowerCase()
@@ -106,17 +118,31 @@ function writePins(pins: StoredPins): void {
 export function normalizePins(value: unknown): StoredPins {
   if (!isRecord(value)) return defaultPins()
 
-  const organizations = Array.isArray(value.organizations)
-    ? dedupeLogins(
-      value.organizations.filter((login): login is string => typeof login === 'string' && login.trim().length > 0)
-    )
-    : []
-
   return {
     version: 1,
-    organizations,
+    organizations: normalizeOrganizationPins(value.organizations),
     repositoryPins: normalizeRepositoryPins(value.repositoryPins)
   }
+}
+
+function normalizeOrganizationPins(value: unknown): Record<string, string[]> {
+  if (!isRecord(value) || Array.isArray(value)) return {}
+
+  const result: Record<string, string[]> = {}
+
+  for (const [login, organizations] of Object.entries(value)) {
+    const normalizedLogin = login.trim().toLowerCase()
+    if (!normalizedLogin || !Array.isArray(organizations)) continue
+
+    const entries = dedupeLogins(
+      organizations.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+    )
+    if (entries.length > 0) {
+      result[normalizedLogin] = entries
+    }
+  }
+
+  return result
 }
 
 function normalizeRepositoryPins(value: unknown): Record<string, GitHubAccountRepository[]> {
@@ -176,13 +202,13 @@ function dedupeLogins(logins: string[]): string[] {
 function defaultPins(): StoredPins {
   return {
     version: 1,
-    organizations: [],
+    organizations: {},
     repositoryPins: {}
   }
 }
 
 function hasPinsContent(pins: StoredPins): boolean {
-  return pins.organizations.length > 0 || Object.keys(pins.repositoryPins).length > 0
+  return Object.keys(pins.organizations).length > 0 || Object.keys(pins.repositoryPins).length > 0
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

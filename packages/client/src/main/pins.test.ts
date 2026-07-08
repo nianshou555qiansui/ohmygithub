@@ -14,41 +14,56 @@ function repository(nameWithOwner: string): Record<string, unknown> {
 }
 
 describe('normalizePins', () => {
-  it('keeps valid organization logins in order', () => {
-    expect(normalizePins({ version: 1, organizations: ['vuejs', 'electron'] })).toEqual({
+  it('keeps organization pins under lowercased account logins', () => {
+    expect(normalizePins({ version: 1, organizations: { Acbox: ['vuejs', 'electron'] } })).toEqual({
       version: 1,
-      organizations: ['vuejs', 'electron'],
+      organizations: { acbox: ['vuejs', 'electron'] },
       repositoryPins: {}
     })
   })
 
   it('returns defaults for non-record payloads', () => {
-    expect(normalizePins(null)).toEqual({ version: 1, organizations: [], repositoryPins: {} })
-    expect(normalizePins('vuejs')).toEqual({ version: 1, organizations: [], repositoryPins: {} })
-    expect(normalizePins([['vuejs']])).toEqual({ version: 1, organizations: [], repositoryPins: {} })
+    expect(normalizePins(null)).toEqual({ version: 1, organizations: {}, repositoryPins: {} })
+    expect(normalizePins('vuejs')).toEqual({ version: 1, organizations: {}, repositoryPins: {} })
+    expect(normalizePins([['vuejs']])).toEqual({ version: 1, organizations: {}, repositoryPins: {} })
   })
 
-  it('returns defaults when organizations is not an array', () => {
+  it('returns defaults when organizations is not a record', () => {
     expect(normalizePins({ version: 1, organizations: 'vuejs' })).toEqual({
       version: 1,
-      organizations: [],
+      organizations: {},
       repositoryPins: {}
     })
-    expect(normalizePins({ version: 1 })).toEqual({ version: 1, organizations: [], repositoryPins: {} })
+    expect(normalizePins({ version: 1 })).toEqual({ version: 1, organizations: {}, repositoryPins: {} })
   })
 
-  it('drops non-string and blank entries', () => {
-    expect(normalizePins({ version: 1, organizations: ['vuejs', 42, null, '  ', 'electron'] })).toEqual({
+  it('ignores the legacy array format', () => {
+    expect(normalizePins({ version: 1, organizations: ['vuejs', 'electron'] })).toEqual({
       version: 1,
-      organizations: ['vuejs', 'electron'],
+      organizations: {},
       repositoryPins: {}
     })
   })
 
-  it('dedupes logins keeping the first occurrence', () => {
-    expect(normalizePins({ version: 1, organizations: ['vuejs', 'electron', 'vuejs'] })).toEqual({
+  it('drops non-string and blank organization entries and empty accounts', () => {
+    expect(normalizePins({
       version: 1,
-      organizations: ['vuejs', 'electron'],
+      organizations: {
+        acbox: ['vuejs', 42, null, '  ', 'electron'],
+        '  ': ['vuejs'],
+        empty: []
+      }
+    })).toEqual({
+      version: 1,
+      organizations: { acbox: ['vuejs', 'electron'] },
+      repositoryPins: {}
+    })
+  })
+
+  it('dedupes organization logins keeping the first occurrence', () => {
+    expect(normalizePins({ version: 1, organizations: { acbox: ['vuejs', 'electron', 'vuejs'] } })).toEqual({
+      version: 1,
+      organizations: { acbox: ['vuejs', 'electron'] },
       repositoryPins: {}
     })
   })

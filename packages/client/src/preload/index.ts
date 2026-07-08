@@ -393,7 +393,7 @@ const api = {
   },
   pins: {
     get: () => ipcRenderer.invoke('pins:get'),
-    update: (payload: unknown) => ipcRenderer.invoke('pins:update', payload),
+    setOrganizationPins: (payload: unknown) => ipcRenderer.invoke('pins:set-organization-pins', payload),
     setRepositoryPins: (payload: unknown) => ipcRenderer.invoke('pins:set-repository-pins', payload)
   },
   userSettings: {
