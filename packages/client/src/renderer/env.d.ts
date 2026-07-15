@@ -414,6 +414,105 @@ type SetOrganizationMembershipVisibilityOptions = {
   publicized: boolean
 }
 
+type GitHubTeamPrivacy = 'visible' | 'secret'
+
+type GitHubTeam = {
+  id: number
+  slug: string
+  name: string
+  description: string | null
+  privacy: GitHubTeamPrivacy
+  org: string
+  avatarUrl: string | null
+  parentSlug: string | null
+  parentName: string | null
+  membersCount: number
+  reposCount: number
+  childTeamsCount: number
+}
+
+type GitHubOrganizationTeams = {
+  teams: GitHubTeam[]
+  totalCount: number
+  truncated: boolean
+  viewerCanAdminister: boolean
+  missingAdminScopes: string[]
+}
+
+type GitHubTeamMemberRole = 'member' | 'maintainer'
+
+type GitHubTeamMember = {
+  id: number
+  login: string
+  name: string | null
+  avatarUrl: string
+  role: GitHubTeamMemberRole
+}
+
+type GitHubTeamRepository = {
+  owner: string
+  name: string
+  nameWithOwner: string
+  description: string | null
+  isPrivate: boolean
+  permission: string
+}
+
+type GitHubTeamDetail = {
+  team: GitHubTeam
+  viewerCanAdminister: boolean
+  members: GitHubTeamMember[]
+  membersTruncated: boolean
+  repositories: GitHubTeamRepository[]
+  repositoriesTruncated: boolean
+  childTeams: GitHubTeam[]
+}
+
+type GitHubCreatedTeam = {
+  id: number
+  slug: string
+  name: string
+}
+
+type OrganizationTeamOptions = {
+  org: string
+  teamSlug: string
+}
+
+type CreateTeamOptions = {
+  org: string
+  name: string
+  description?: string
+  privacy?: GitHubTeamPrivacy
+  parentTeamId?: number
+}
+
+type UpdateTeamOptions = OrganizationTeamOptions & {
+  name?: string
+  description?: string
+  privacy?: GitHubTeamPrivacy
+}
+
+type SetTeamMembershipOptions = OrganizationTeamOptions & {
+  login: string
+  role: GitHubTeamMemberRole
+}
+
+type TeamMemberOptions = OrganizationTeamOptions & {
+  login: string
+}
+
+type AddOrUpdateTeamRepositoryOptions = OrganizationTeamOptions & {
+  owner: string
+  repo: string
+  permission: string
+}
+
+type TeamRepositoryOptions = OrganizationTeamOptions & {
+  owner: string
+  repo: string
+}
+
 type GitHubRepository = {
   id: number
   name: string
@@ -2153,6 +2252,17 @@ interface Window {
       removeMember: (options: OrganizationMemberOptions) => Promise<void>
       cancelInvitation: (options: CancelOrganizationInvitationOptions) => Promise<void>
       setMembershipVisibility: (options: SetOrganizationMembershipVisibilityOptions) => Promise<void>
+    }
+    organizationTeams: {
+      getTeams: (org: string) => Promise<GitHubOrganizationTeams>
+      getTeamDetail: (options: OrganizationTeamOptions) => Promise<GitHubTeamDetail>
+      createTeam: (options: CreateTeamOptions) => Promise<GitHubCreatedTeam>
+      updateTeam: (options: UpdateTeamOptions) => Promise<GitHubCreatedTeam>
+      deleteTeam: (options: OrganizationTeamOptions) => Promise<void>
+      setTeamMembership: (options: SetTeamMembershipOptions) => Promise<void>
+      removeTeamMember: (options: TeamMemberOptions) => Promise<void>
+      addOrUpdateTeamRepository: (options: AddOrUpdateTeamRepositoryOptions) => Promise<void>
+      removeTeamRepository: (options: TeamRepositoryOptions) => Promise<void>
     }
     actions: {
       listRepositoryWorkflows: (owner: string, repo: string) => Promise<GitHubActionWorkflow[]>

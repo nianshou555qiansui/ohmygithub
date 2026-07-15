@@ -35,6 +35,17 @@ const api = {
     cancelInvitation: (options: unknown) => ipcRenderer.invoke('organization-people:cancel-invitation', options),
     setMembershipVisibility: (options: unknown) => ipcRenderer.invoke('organization-people:set-visibility', options)
   },
+  organizationTeams: {
+    getTeams: (org: string) => ipcRenderer.invoke('organization-teams:get', org),
+    getTeamDetail: (options: unknown) => ipcRenderer.invoke('organization-teams:get-detail', options),
+    createTeam: (options: unknown) => ipcRenderer.invoke('organization-teams:create', options),
+    updateTeam: (options: unknown) => ipcRenderer.invoke('organization-teams:update', options),
+    deleteTeam: (options: unknown) => ipcRenderer.invoke('organization-teams:delete', options),
+    setTeamMembership: (options: unknown) => ipcRenderer.invoke('organization-teams:set-membership', options),
+    removeTeamMember: (options: unknown) => ipcRenderer.invoke('organization-teams:remove-member', options),
+    addOrUpdateTeamRepository: (options: unknown) => ipcRenderer.invoke('organization-teams:add-repository', options),
+    removeTeamRepository: (options: unknown) => ipcRenderer.invoke('organization-teams:remove-repository', options)
+  },
   actions: {
     listRepositoryWorkflows: (owner: string, repo: string) =>
       ipcRenderer.invoke('actions:list-workflows', owner, repo),
