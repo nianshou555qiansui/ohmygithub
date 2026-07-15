@@ -98,11 +98,15 @@ function onTeamCreated(created: GitHubCreatedTeam): void {
         v-for="childTeam in childTeams"
         :key="childTeam.slug"
       >
-        <div class="flex min-w-0 items-center gap-3 rounded-lg border border-border bg-card p-3">
-          <Avatar
-            class="size-10 shrink-0 cursor-pointer"
-            @click="emit('selectTeam', childTeam.slug)"
-          >
+        <div
+          class="flex min-w-0 cursor-pointer items-center gap-3 rounded-lg border border-border bg-card p-3 outline-hidden transition-colors hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring/30"
+          role="button"
+          tabindex="0"
+          @click="emit('selectTeam', childTeam.slug)"
+          @keydown.enter.prevent="emit('selectTeam', childTeam.slug)"
+          @keydown.space.prevent="emit('selectTeam', childTeam.slug)"
+        >
+          <Avatar class="size-10 shrink-0">
             <AvatarImage
               :alt="childTeam.name"
               :src="childTeam.avatarUrl ?? ''"
@@ -114,13 +118,9 @@ function onTeamCreated(created: GitHubCreatedTeam): void {
 
           <div class="grid min-w-0 flex-1 gap-0.5">
             <div class="flex min-w-0 items-center gap-2">
-              <button
-                class="truncate text-label font-medium text-foreground underline-offset-4 hover:underline"
-                type="button"
-                @click="emit('selectTeam', childTeam.slug)"
-              >
+              <span class="truncate text-label font-medium text-foreground">
                 {{ childTeam.name }}
-              </button>
+              </span>
               <span class="truncate text-body text-muted-foreground">
                 {{ childTeam.slug }}
               </span>

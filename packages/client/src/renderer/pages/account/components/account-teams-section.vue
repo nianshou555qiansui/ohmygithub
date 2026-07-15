@@ -277,7 +277,14 @@ function onTeamCreated(created: GitHubCreatedTeam): void {
           :key="row.team.slug"
           :style="{ paddingLeft: `${row.level * 1.75}rem` }"
         >
-          <div class="flex min-w-0 items-center gap-2 rounded-lg border border-border bg-card p-3">
+          <div
+            class="flex min-w-0 cursor-pointer items-center gap-2 rounded-lg border border-border bg-card p-3 outline-hidden transition-colors hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring/30"
+            role="button"
+            tabindex="0"
+            @click="emit('selectTeam', row.team.slug)"
+            @keydown.enter.self.prevent="emit('selectTeam', row.team.slug)"
+            @keydown.space.self.prevent="emit('selectTeam', row.team.slug)"
+          >
             <Button
               v-if="row.hasChildren"
               :aria-label="t(expandedSlugs.has(row.team.slug)
@@ -286,7 +293,7 @@ function onTeamCreated(created: GitHubCreatedTeam): void {
               size="icon-sm"
               type="button"
               variant="ghost"
-              @click="toggleExpanded(row.team.slug)"
+              @click.stop="toggleExpanded(row.team.slug)"
             >
               <ChevronRight
                 class="size-4 transition-transform"
@@ -298,10 +305,7 @@ function onTeamCreated(created: GitHubCreatedTeam): void {
               class="size-7 shrink-0"
             />
 
-            <Avatar
-              class="size-10 shrink-0 cursor-pointer"
-              @click="emit('selectTeam', row.team.slug)"
-            >
+            <Avatar class="size-10 shrink-0">
               <AvatarImage
                 :alt="row.team.name"
                 :src="row.team.avatarUrl ?? ''"
@@ -313,13 +317,9 @@ function onTeamCreated(created: GitHubCreatedTeam): void {
 
             <div class="grid min-w-0 flex-1 gap-0.5">
               <div class="flex min-w-0 items-center gap-2">
-                <button
-                  class="truncate text-label font-medium text-foreground underline-offset-4 hover:underline"
-                  type="button"
-                  @click="emit('selectTeam', row.team.slug)"
-                >
+                <span class="truncate text-label font-medium text-foreground">
                   {{ row.team.name }}
-                </button>
+                </span>
                 <span class="truncate text-body text-muted-foreground">
                   {{ row.team.slug }}
                 </span>
