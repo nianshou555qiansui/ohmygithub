@@ -140,6 +140,7 @@ function showCommentHint(row: ReviewDiffRow, index: number): boolean {
       :class="{
         'bg-diff-add': row.diff.type === 'add' && !isRowSelected(row),
         'bg-diff-remove': row.diff.type === 'del' && !isRowSelected(row),
+        'bg-muted-foreground/10': row.diff.type === 'hunk',
         'bg-accent': isRowSelected(row),
       }"
       @mouseenter="onRowEnter(row, index)"
@@ -150,7 +151,7 @@ function showCommentHint(row: ReviewDiffRow, index: number): boolean {
           :style="gutterStyle"
         />
         <div class="flex-1 select-none whitespace-pre px-2 text-muted-foreground">
-          @@ {{ row.diff.content }}
+          {{ row.diff.content }}
         </div>
       </template>
       <template v-else>
